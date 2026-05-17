@@ -440,9 +440,23 @@ async function sheetsBatchGet(ranges){
 }
 async function sheetsAppend(range,values){
   if(!token||!cfg) return false;
-  const url=`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
-  const r=await fetch(url,{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values})});
+  // Use UPDATE (not insert) to write to a specific row
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`;
+  const r=await fetch(url,{method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values})});
   return r.ok;
+}
+
+async function findNextEmptyRow(mn){
+  // Read the Description column (L) from rows 12-131 to find first empty
+  const data=await sheetsGet(`'${mn}'!L12:L131`);
+  if(!data) return null;
+  // Find first empty row
+  for(let i=0;i<data.length;i++){
+    if(!(data[i]||[])[0]||!((data[i]||[])[0]).toString().trim()){
+      return 12+i; // 1-indexed row number
+    }
+  }
+  return null; // log is full
 }
 
 // ─── LOAD DATA ────────────────────────────────────────────
@@ -718,12 +732,15 @@ async function saveExpense(){
   const mn=MONTHS[mi];
   // Append to log: K=date, L=desc, M=cat, N=cc, O=total, P=split, Q=share, R=notes
   const row=[[date,desc,cat,cc,total,split,share,notes]];
-  const range=`'${mn}'!K12:R12`;
   closeOverlay('add-overlay');
   toast('Saving...','#1d4ed8');
   if(token){
+    // Find the next empty row in log range 12-131
+    const emptyRow=await findNextEmptyRow(mn);
+    if(!emptyRow){toast('Log is full (max 120 entries)','#ef4444');return;}
+    const range=`'${mn}'!K${emptyRow}:R${emptyRow}`;
     const ok=await sheetsAppend(range,row);
-    if(ok){toast('Saved to Google Sheet ✓','#059669');invalidate(MONTHS[mi]);setTimeout(loadData,1000);}
+    if(ok){toast('Saved to Google Sheet ✓','#059669');invalidate(MONTHS[mi]);setTimeout(loadData,1500);}
     else{toast('Save failed — check connection','#ef4444');}
   } else {
     toast('Not connected to Google Sheet','#ef4444');
