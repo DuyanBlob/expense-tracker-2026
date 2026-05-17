@@ -447,16 +447,18 @@ async function sheetsAppend(range,values){
 }
 
 async function findNextEmptyRow(mn){
-  // Read the Description column (L) from rows 12-131 to find first empty
+  // Read Description column (L) rows 12-131
   const data=await sheetsGet(`'${mn}'!L12:L131`);
-  if(!data) return null;
-  // Find first empty row
+  if(!data) return 12; // if can't read, default to row 12
+  // Count rows that actually have text content
+  let lastFilled=-1;
   for(let i=0;i<data.length;i++){
-    if(!(data[i]||[])[0]||!((data[i]||[])[0]).toString().trim()){
-      return 12+i; // 1-indexed row number
-    }
+    const val=((data[i]||[])[0]||'').toString().trim();
+    if(val) lastFilled=i;
   }
-  return null; // log is full
+  const nextRow=12+lastFilled+1;
+  if(nextRow>131) return null; // truly full
+  return nextRow;
 }
 
 // ─── LOAD DATA ────────────────────────────────────────────
