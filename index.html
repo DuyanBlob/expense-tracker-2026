@@ -740,7 +740,7 @@ async function saveExpense(){
     // Find the next empty row in log range 12-131
     const emptyRow=await findNextEmptyRow(mn);
     if(!emptyRow){toast('Log is full (max 120 entries)','#ef4444');return;}
-    const range=`'${mn}'!L${emptyRow}:S${emptyRow}`;
+    const range=`'${mn}'!K${emptyRow}:R${emptyRow}`;
     const ok=await sheetsAppend(range,row);
     if(ok){toast('Saved to Google Sheet ✓','#059669');invalidate(MONTHS[mi]);setTimeout(loadData,1500);}
     else{toast('Save failed — check connection','#ef4444');}
