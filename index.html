@@ -473,13 +473,27 @@ async function loadData(){
     `'${mn}'!D29:D40`,                         // [2] CC totals (D=amount)
     `'${mn}'!D44:F52`,                         // [3] investments (D=added, F=balance)
     `'${mn}'!D56:D71`,                         // [4] monthly summary + sharon
-    `'${mn}'!K12:S${ROWS.logEnd}`,             // [5] log entries
+    `'${mn}'!J12:R${ROWS.logEnd}`,             // [5] log entries
   ];
 
   const vr=await sheetsBatchGet(ranges);
   if(!vr){ loading=false; toast('Could not load data — check connection','#ef4444'); return; }
 
-  const g=(a,r,c)=>{ const v=((a[r]||[])[c]||'').toString().replace(/[$,%"\s]/g,'').replace(/,/g,''); return parseFloat(v)||0; };
+  const g=(a,r,c)=>{
+    const raw=((a[r]||[])[c]||'').toString().trim();
+    if(!raw) return 0;
+    if(raw.endsWith('%')){ return parseFloat(raw.replace('%','').trim())/100||0; }
+    return parseFloat(raw.replace(/[$,"\s]/g,''))||0;
+  };
+  // Percentage getter - always returns a 0-1 decimal
+  const gp=(a,r,c)=>{
+    const raw=((a[r]||[])[c]||'').toString().trim();
+    if(!raw) return 0;
+    if(raw.endsWith('%')){ return parseFloat(raw.replace('%','').trim())/100||0; }
+    const n=parseFloat(raw.replace(/[$,"\s]/g,''))||0;
+    // If value is already a small decimal (0-1 range) use as-is, else divide by 100
+    return n>1 ? n/100 : n;
+  };
   const s=(a,r,c)=>((a[r]||[])[c]||'').toString().trim();
 
   // [0] Settings: rows indexed from 0 = D6,D7,D8,D9; cols 0=D,1=E,2=F,3=G,4=H
@@ -494,15 +508,15 @@ async function loadData(){
   // [1] Category: rows 0-10=cats(D12-D22), 11=adjRent(D23), 12=invest(D24), 13=totalOut(D25), 14=leftover(D26)
   const CAT=vr[1].values||[];
   const catShares=CATS.map((_,i)=>g(CAT,i,0));
-  const catPcts  =CATS.map((_,i)=>g(CAT,i,1));
+  const catPcts  =CATS.map((_,i)=>gp(CAT,i,1));
   const adjRent  =g(CAT,11,0);
-  const adjRentPct=g(CAT,11,1);
+  const adjRentPct=gp(CAT,11,1);
   const invested =g(CAT,12,0);
-  const investPct=g(CAT,12,1);
+  const investPct=gp(CAT,12,1);
   const totalOut =g(CAT,13,0);
-  const totalOutPct=g(CAT,13,1);
+  const totalOutPct=gp(CAT,13,1);
   const leftover =g(CAT,14,0);
-  const leftoverPct=g(CAT,14,1);
+  const leftoverPct=gp(CAT,14,1);
 
   // [2] CC: rows 0-10=CFF..Other, row 11=TOTAL (each row = 1 col = D)
   const CC=vr[2].values||[];
@@ -534,11 +548,12 @@ async function loadData(){
   const youOwe     =g(SUM,15,0);
 
   // [5] Log: K=date[0], L=desc[1], M=cat[2], N=cc[3], O=total[4], P=split[5], Q=share[6], R=notes[7]
-  const LOG=(vr[5].values||[]).filter(r=>(r[2]||'').trim());
+  const LOG=(vr[5].values||[]).filter(r=>(r[2]||'').toString().trim());
   const logRows=LOG.map((r,i)=>({
     idx:i,date:r[0]||'',desc:r[1]||'',cat:r[2]||'',cc:r[3]||'',
-    total:parseFloat((r[5]||'').toString().replace(/[$,"%\s]/g,''))||0,split:parseFloat((r[6]||'').toString().replace(/[%\s]/g,''))/((r[6]||'').includes('%')?100:1)||1,
-    share:parseFloat((r[7]||'').toString().replace(/[$,"\s]/g,''))||0,notes:r[8]||'',
+    total:(()=>{ const v=(r[5]||'').toString().trim(); return parseFloat(v.replace(/[$,"\s]/g,''))||0; })(),
+    split:(()=>{ const v=(r[6]||'').toString().trim(); if(!v) return 1; if(v.endsWith('%')) return parseFloat(v)/100||1; const n=parseFloat(v)||1; return n>1?n/100:n; })(),
+    share:(()=>{ const v=(r[7]||'').toString().trim(); return parseFloat(v.replace(/[$,"\s]/g,''))||0; })(),notes:r[8]||'',
     pre: i < 9 // first 9 rows are pre-planned
   }));
 
@@ -753,7 +768,7 @@ async function saveExpense(){
 async function exportCSV(){
   if(!token){toast('Connect to Google Sheet first','#ef4444');return;}
   const mn=MONTHS[mi];
-  const data=await sheetsGet(`'${mn}'!K12:S${ROWS.logEnd}`);
+  const data=await sheetsGet(`'${mn}'!J12:R${ROWS.logEnd}`);
   if(!data){toast('Could not load log data','#ef4444');return;}
   const rows=[['Date','Description','Category','Credit Card','Total ($)','Split %','Your Share ($)','Notes']];
   data.filter(r=>(r[1]||'').trim()).forEach(r=>rows.push(r));
