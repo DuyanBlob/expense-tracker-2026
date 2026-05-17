@@ -371,6 +371,10 @@ const ROWS = {
 
 // ─── STATE ────────────────────────────────────────────────
 let mi=0, curView='dash', token=null, cfg=null, loading=false;
+const cache={}, cacheTs={};
+const CACHE_TTL=60000;
+function isCached(m){return cache[m]&&(Date.now()-cacheTs[m])<CACHE_TTL;}
+function invalidate(m){delete cache[m];}
 
 // ─── CONFIG ───────────────────────────────────────────────
 function loadConfig(){
@@ -443,7 +447,7 @@ async function sheetsAppend(range,values){
 
 // ─── LOAD DATA ────────────────────────────────────────────
 async function loadData(){
-  if(!token||!cfg) return;
+  if(!token||!cfg||loading) return;
   loading=true;
   const mn=MONTHS[mi];
 
@@ -457,7 +461,7 @@ async function loadData(){
   ];
 
   const vr=await sheetsBatchGet(ranges);
-  if(!vr){ loading=false; return; }
+  if(!vr){ loading=false; toast('Could not load data — check connection','#ef4444'); return; }
 
   const g=(a,r,c)=>parseFloat((a[r]||[])[c]||0)||0;
   const s=(a,r,c)=>((a[r]||[])[c]||'').toString().trim();
@@ -523,12 +527,19 @@ async function loadData(){
   }));
 
   loading=false;
+  const d={income,pay1,pay2,carry,adjRent,adjRentPct,ccTotal,leftover,leftoverPct,
+    totalOut,totalOutPct,invested,investPct,catShares,catPcts,ccAmts,logRows,
+    robAdd,robBal,vanAdd,vanBal,wantsAdd,wantsBal,vacAdd,vacBal,carAdd,carBal,emergAdd,emergBal,allyTotal,
+    sharonBase,sheCovered,youCovered,sharonTotal,youOwe};
+  cache[mn]=d; cacheTs[mn]=Date.now();
+  renderAll(d);
+}
 
-  renderDash({income,pay1,pay2,carry,adjRent,adjRentPct,ccTotal,leftover,leftoverPct,
-    totalOut,totalOutPct,invested,investPct,catShares,catPcts,ccAmts});
-  renderLog(logRows);
-  renderInvest({robAdd,robBal,vanAdd,vanBal,wantsAdd,wantsBal,vacAdd,vacBal,carAdd,carBal,emergAdd,emergBal,allyTotal});
-  renderSharon({sharonBase,sheCovered,youCovered,sharonTotal,youOwe});
+function renderAll(d){
+  renderDash(d);
+  renderLog(d.logRows||[]);
+  renderInvest(d);
+  renderSharon(d);
 }
 
 // ─── RENDER FUNCTIONS ─────────────────────────────────────
@@ -668,13 +679,13 @@ function nav(v){
   });
   document.getElementById('fab').classList.toggle('show',v==='log');
   document.getElementById('scroll').scrollTop=0;
-  if(token) loadData();
+  if(token){if(isCached(MONTHS[mi]))renderAll(cache[MONTHS[mi]]);else loadData();}
 }
 
 function chMonth(d){
   mi=Math.max(0,Math.min(7,mi+d));
   document.getElementById('mname').textContent=MONTHS[mi];
-  if(token) loadData();
+  if(token){invalidate(MONTHS[mi]);loadData();}
 }
 
 // ─── ADD EXPENSE ──────────────────────────────────────────
@@ -712,7 +723,7 @@ async function saveExpense(){
   toast('Saving...','#1d4ed8');
   if(token){
     const ok=await sheetsAppend(range,row);
-    if(ok){toast('Saved to Google Sheet ✓','#059669');loadData();}
+    if(ok){toast('Saved to Google Sheet ✓','#059669');invalidate(MONTHS[mi]);setTimeout(loadData,1000);}
     else{toast('Save failed — check connection','#ef4444');}
   } else {
     toast('Not connected to Google Sheet','#ef4444');
