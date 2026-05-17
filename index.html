@@ -471,7 +471,7 @@ async function loadData(){
     `'${mn}'!D29:D40`,                         // [2] CC totals (D=amount)
     `'${mn}'!D44:F52`,                         // [3] investments (D=added, F=balance)
     `'${mn}'!D56:D71`,                         // [4] monthly summary + sharon
-    `'${mn}'!K12:R${ROWS.logEnd}`,             // [5] log entries
+    `'${mn}'!K12:S${ROWS.logEnd}`,             // [5] log entries
   ];
 
   const vr=await sheetsBatchGet(ranges);
@@ -532,11 +532,11 @@ async function loadData(){
   const youOwe     =g(SUM,15,0);
 
   // [5] Log: K=date[0], L=desc[1], M=cat[2], N=cc[3], O=total[4], P=split[5], Q=share[6], R=notes[7]
-  const LOG=(vr[5].values||[]).filter(r=>(r[1]||'').trim());
+  const LOG=(vr[5].values||[]).filter(r=>(r[2]||'').trim());
   const logRows=LOG.map((r,i)=>({
     idx:i,date:r[0]||'',desc:r[1]||'',cat:r[2]||'',cc:r[3]||'',
-    total:parseFloat((r[4]||'').toString().replace(/[$,"%\s]/g,''))||0,split:parseFloat((r[5]||'').toString().replace(/[%\s]/g,''))/((r[5]||'').includes('%')?100:1)||1,
-    share:parseFloat((r[6]||'').toString().replace(/[$,"\s]/g,''))||0,notes:r[7]||'',
+    total:parseFloat((r[5]||'').toString().replace(/[$,"%\s]/g,''))||0,split:parseFloat((r[6]||'').toString().replace(/[%\s]/g,''))/((r[6]||'').includes('%')?100:1)||1,
+    share:parseFloat((r[7]||'').toString().replace(/[$,"\s]/g,''))||0,notes:r[8]||'',
     pre: i < 9 // first 9 rows are pre-planned
   }));
 
@@ -738,7 +738,7 @@ async function saveExpense(){
     // Find the next empty row in log range 12-131
     const emptyRow=await findNextEmptyRow(mn);
     if(!emptyRow){toast('Log is full (max 120 entries)','#ef4444');return;}
-    const range=`'${mn}'!K${emptyRow}:R${emptyRow}`;
+    const range=`'${mn}'!L${emptyRow}:S${emptyRow}`;
     const ok=await sheetsAppend(range,row);
     if(ok){toast('Saved to Google Sheet ✓','#059669');invalidate(MONTHS[mi]);setTimeout(loadData,1500);}
     else{toast('Save failed — check connection','#ef4444');}
@@ -751,7 +751,7 @@ async function saveExpense(){
 async function exportCSV(){
   if(!token){toast('Connect to Google Sheet first','#ef4444');return;}
   const mn=MONTHS[mi];
-  const data=await sheetsGet(`'${mn}'!K12:R${ROWS.logEnd}`);
+  const data=await sheetsGet(`'${mn}'!K12:S${ROWS.logEnd}`);
   if(!data){toast('Could not load log data','#ef4444');return;}
   const rows=[['Date','Description','Category','Credit Card','Total ($)','Split %','Your Share ($)','Notes']];
   data.filter(r=>(r[1]||'').trim()).forEach(r=>rows.push(r));
