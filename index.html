@@ -5,14 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#1a1f36">
+<meta name="theme-color" content="#0f1117">
 <title>Expense Tracker 2026</title>
 <style>
-/* ── TOKENS ─────────────────────────────────────────────── */
 :root{
   --bg:#0f1117;--bg2:#1a1f36;--bg3:#242a45;--bg4:#2e3558;
-  --card:#1e2440;--card2:#252c4a;
-  --border:#2e3655;--border2:#3a4470;
+  --card:#1e2440;--border:#2e3655;--border2:#3a4470;
   --text:#f0f2ff;--text2:#8892b8;--text3:#545e85;
   --blue:#4f8ef7;--blue2:#3a7cf5;--lt-blue:#1a2f5e;
   --teal:#2dd4bf;--lt-teal:#0d3330;
@@ -20,665 +18,645 @@
   --red:#f87171;--lt-red:#2e1010;
   --amber:#fbbf24;--lt-amber:#2e2010;
   --purple:#a78bfa;--lt-purple:#1e1535;
-  --navy:#1a1f36;
-  --r:16px;--rs:10px;--rxs:7px;
+  --r:16px;--rs:10px;
   --shadow:0 4px 24px rgba(0,0,0,.4);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden}
-body{font-family:-apple-system,'SF Pro Display',system-ui,sans-serif;
-  background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+body{font-family:-apple-system,'SF Pro Display',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
 
-/* ── HEADER ─────────────────────────────────────────────── */
-.header{background:var(--bg2);border-bottom:1px solid var(--border);
-  padding:env(safe-area-inset-top,0) 16px 0;
-  display:flex;align-items:center;justify-content:space-between;
-  height:calc(56px + env(safe-area-inset-top,0));flex-shrink:0}
-.h-title{font-size:17px;font-weight:700;color:var(--text)}
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:env(safe-area-inset-top,0) 16px 0;display:flex;align-items:center;justify-content:space-between;height:calc(56px + env(safe-area-inset-top,0));flex-shrink:0}
+.h-title{font-size:16px;font-weight:700}
 .h-title span{color:var(--blue)}
-.month-pill{display:flex;align-items:center;gap:8px;background:var(--bg3);
-  border-radius:20px;padding:6px 12px;gap:6px}
-.mprev,.mnext{background:none;border:none;color:var(--text2);font-size:18px;
-  cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;
-  border-radius:50%;transition:.15s}
-.mprev:active,.mnext:active{background:var(--bg4)}
-.mname{font-size:13px;font-weight:600;color:var(--text);min-width:62px;text-align:center}
+.h-right{display:flex;align-items:center;gap:8px}
+.month-pill{display:flex;align-items:center;background:var(--bg3);border-radius:20px;padding:5px 10px;gap:4px}
+.mpb{background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.mpb:active{background:var(--bg4)}
+.mname{font-size:12px;font-weight:600;color:var(--text);min-width:58px;text-align:center}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.sync-dot.live{background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-/* ── SCROLL AREA ─────────────────────────────────────────── */
-.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
-  padding-bottom:calc(80px + env(safe-area-inset-bottom,0))}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(80px + env(safe-area-inset-bottom,0))}
 
-/* ── BOTTOM NAV ──────────────────────────────────────────── */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;
-  background:var(--bg2);border-top:1px solid var(--border);
-  display:flex;padding-bottom:env(safe-area-inset-bottom,0)}
-.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;padding:10px 4px;cursor:pointer;border:none;
-  background:transparent;color:var(--text3);font-size:10px;font-weight:600;
-  letter-spacing:.3px;gap:4px;transition:.15s;-webkit-tap-highlight-color:transparent}
-.bnav-item.active{color:var(--blue)}
-.bnav-icon{font-size:20px;line-height:1}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--bg2);border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,0)}
+.bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px;cursor:pointer;border:none;background:transparent;color:var(--text3);font-size:10px;font-weight:600;letter-spacing:.3px;gap:4px;transition:.15s}
+.bni.active{color:var(--blue)}
+.bni-icon{font-size:20px;line-height:1}
 
-/* ── PAGES ───────────────────────────────────────────────── */
 .page{padding:16px;display:none}
 .page.active{display:block}
-
-/* ── SECTION LABEL ───────────────────────────────────────── */
-.sec{font-size:11px;font-weight:700;color:var(--text3);
-  letter-spacing:.8px;text-transform:uppercase;margin:20px 0 10px}
+.sec{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin:20px 0 10px}
 .sec:first-child{margin-top:0}
 
-/* ── HERO CARDS (top stats) ──────────────────────────────── */
-.hero{background:linear-gradient(135deg,var(--blue2),#6366f1);
-  border-radius:var(--r);padding:20px;margin-bottom:16px;
-  box-shadow:var(--shadow)}
+/* HERO */
+.hero{border-radius:var(--r);padding:20px;margin-bottom:12px;box-shadow:var(--shadow)}
 .hero-label{font-size:12px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:4px}
-.hero-val{font-size:36px;font-weight:800;color:#fff;letter-spacing:-1px;
-  font-variant-numeric:tabular-nums}
+.hero-val{font-size:34px;font-weight:800;color:#fff;letter-spacing:-1px;font-variant-numeric:tabular-nums}
 .hero-sub{font-size:12px;color:rgba(255,255,255,.6);margin-top:4px}
-.hero-row{display:flex;gap:10px;margin-bottom:12px}
-.hero-mini{flex:1;background:rgba(255,255,255,.12);border-radius:var(--rs);padding:12px}
-.hm-label{font-size:10px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:3px}
-.hm-val{font-size:18px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums}
+.mini-row{display:flex;gap:10px;margin-bottom:12px}
+.mini{flex:1;border-radius:var(--rs);padding:14px}
+.mini-lbl{font-size:10px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:3px}
+.mini-val{font-size:18px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums}
 
-/* ── CARDS ───────────────────────────────────────────────── */
-.card{background:var(--card);border:1px solid var(--border);
-  border-radius:var(--r);overflow:hidden;margin-bottom:12px}
-.card-hdr{padding:12px 16px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between}
-.card-hdr h3{font-size:12px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase}
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.card-hdr{padding:11px 14px;border-bottom:1px solid var(--border)}
+.card-hdr h3{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase}
 
-/* ── STAT ROW ────────────────────────────────────────────── */
-.stat-row{display:flex;align-items:center;padding:12px 16px;
-  border-bottom:1px solid var(--border);gap:12px}
-.stat-row:last-child{border-bottom:none}
-.sr-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;
-  justify-content:center;font-size:16px;flex-shrink:0}
+/* STAT ROW */
+.sr{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);gap:12px}
+.sr:last-child{border-bottom:none}
+.sr-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
 .sr-main{flex:1;min-width:0}
-.sr-name{font-size:14px;font-weight:500;color:var(--text);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sr-sub{font-size:11px;color:var(--text3);margin-top:1px}
-.sr-right{text-align:right;flex-shrink:0}
-.sr-amt{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text)}
+.sr-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.sr-r{text-align:right;flex-shrink:0}
+.sr-amt{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
 .sr-pct{font-size:11px;color:var(--text3);margin-top:1px}
+.prog-wrap{height:3px;background:var(--border2);border-radius:2px;margin-top:5px}
+.prog{height:3px;border-radius:2px}
 
-/* ── PROGRESS BAR ────────────────────────────────────────── */
-.prog-wrap{height:4px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden}
-.prog{height:4px;border-radius:2px;transition:.4s}
-
-/* ── CHIP ────────────────────────────────────────────────── */
-.chip{display:inline-flex;align-items:center;border-radius:6px;padding:3px 8px;
-  font-size:11px;font-weight:700;white-space:nowrap}
-.chip-blue{background:var(--lt-blue);color:var(--blue)}
-.chip-purple{background:var(--lt-purple);color:var(--purple)}
-.chip-teal{background:var(--lt-teal);color:var(--teal)}
-.chip-green{background:var(--lt-green);color:var(--green)}
-
-/* ── LOG ROWS ────────────────────────────────────────────── */
-.log-row{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+/* LOG */
+.log-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.fab{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom,0));right:18px;width:54px;height:54px;border-radius:27px;background:var(--blue);border:none;color:#fff;font-size:26px;display:none;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(79,142,247,.5);cursor:pointer;z-index:99}
+.fab:active{transform:scale(.93)}
+.fab.show{display:flex}
+.log-row{padding:13px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:11px}
 .log-row:last-child{border-bottom:none}
 .log-row.pre{background:rgba(251,191,36,.04)}
-.log-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;
-  justify-content:center;font-size:16px;flex-shrink:0}
+.log-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
 .log-main{flex:1;min-width:0}
-.log-desc{font-size:14px;font-weight:600;color:var(--text);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.log-meta{display:flex;align-items:center;gap:6px;margin-top:3px}
-.log-date{font-size:11px;color:var(--text3)}
-.log-right{text-align:right;flex-shrink:0}
-.log-total{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text)}
+.log-desc{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.log-meta{display:flex;align-items:center;gap:5px;margin-top:4px;flex-wrap:wrap}
+.log-r{text-align:right;flex-shrink:0}
+.log-total{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
 .log-share{font-size:11px;color:var(--blue);margin-top:2px}
-.del-btn{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;
-  padding:6px;border-radius:8px;flex-shrink:0}
-.del-btn:active{background:var(--lt-red);color:var(--red)}
+.del-btn{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:6px;border-radius:8px;flex-shrink:0}
+.del-btn:active{color:var(--red)}
 
-/* ── FAB ─────────────────────────────────────────────────── */
-.fab{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom,0));right:20px;
-  width:56px;height:56px;border-radius:28px;background:var(--blue);
-  border:none;color:#fff;font-size:26px;display:flex;align-items:center;
-  justify-content:center;box-shadow:0 4px 20px rgba(79,142,247,.5);
-  cursor:pointer;z-index:99;transition:.2s;display:none}
-.fab:active{transform:scale(.94)}
-.fab.show{display:flex}
+.chip{display:inline-flex;align-items:center;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700}
+.chip-b{background:var(--lt-blue);color:var(--blue)}
+.chip-p{background:var(--lt-purple);color:var(--purple)}
+.chip-g{background:var(--lt-green);color:var(--green)}
 
-/* ── MODAL ───────────────────────────────────────────────── */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;
-  display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:.25s}
-.overlay.open{opacity:1;pointer-events:all}
-.sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;
-  padding:0 0 env(safe-area-inset-bottom,0);max-height:92vh;overflow-y:auto;
-  transform:translateY(100%);transition:.3s cubic-bezier(.32,0,.67,0)}
-.overlay.open .sheet{transform:translateY(0)}
-.sheet-drag{width:36px;height:4px;background:var(--border2);border-radius:2px;
-  margin:12px auto 0}
-.sheet-hdr{padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid var(--border)}
-.sheet-hdr h2{font-size:17px;font-weight:700}
-.sheet-close{background:var(--bg3);border:none;color:var(--text2);width:32px;height:32px;
-  border-radius:16px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.sheet-body{padding:16px 20px 24px}
-
-/* ── FORM ────────────────────────────────────────────────── */
-.fg{margin-bottom:16px}
-.fg label{display:block;font-size:12px;font-weight:700;color:var(--text2);
-  letter-spacing:.3px;text-transform:uppercase;margin-bottom:6px}
-.fg input,.fg select{width:100%;background:var(--bg3);border:1px solid var(--border);
-  border-radius:var(--rs);padding:13px 14px;font-size:16px;color:var(--text);
-  -webkit-appearance:none;appearance:none}
-.fg input:focus,.fg select:focus{outline:none;border-color:var(--blue);
-  box-shadow:0 0 0 3px rgba(79,142,247,.2)}
-.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.preview-box{background:var(--lt-blue);border-radius:var(--rs);padding:14px;
-  display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.prev-lbl{font-size:13px;font-weight:600;color:var(--blue)}
-.prev-val{font-size:22px;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums}
-.save-btn{width:100%;background:var(--blue);color:#fff;border:none;
-  border-radius:var(--rs);padding:15px;font-size:16px;font-weight:700;
-  cursor:pointer;margin-top:4px}
-.save-btn:active{background:var(--blue2)}
-
-/* ── SETTINGS ────────────────────────────────────────────── */
-.sgroup{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
-  overflow:hidden;margin-bottom:12px}
-.sgroup-hdr{padding:12px 16px;border-bottom:1px solid var(--border);
-  font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase}
-.sgroup-body{padding:14px 16px;display:flex;flex-direction:column;gap:14px}
-.settings-save{width:100%;background:var(--blue);color:#fff;border:none;
-  border-radius:var(--rs);padding:15px;font-size:16px;font-weight:700;cursor:pointer;margin-top:4px}
-
-/* ── ALLY BUCKETS ────────────────────────────────────────── */
+/* ALLY */
 .ally-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .abkt{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px}
-.abname{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.5px;
-  text-transform:uppercase;margin-bottom:4px}
-.abval{font-size:22px;font-weight:800;color:var(--teal);font-variant-numeric:tabular-nums}
+.abname{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.abval{font-size:21px;font-weight:800;color:var(--teal);font-variant-numeric:tabular-nums}
 .absub{font-size:11px;color:var(--text3);margin-top:3px}
 
-/* ── SHARON HIGHLIGHT ────────────────────────────────────── */
-.sharon-total{background:linear-gradient(135deg,#7c3aed,#4f46e5);
-  border-radius:var(--r);padding:18px;margin-bottom:12px;box-shadow:var(--shadow)}
-.st-label{font-size:12px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:4px}
-.st-val{font-size:32px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
-.st-sub{font-size:12px;color:rgba(255,255,255,.6);margin-top:4px}
+/* SHARON */
+.sharon-hero{background:linear-gradient(135deg,#7c3aed,#4f46e5);border-radius:var(--r);padding:18px;margin-bottom:12px;box-shadow:var(--shadow)}
 
-/* ── EMPTY STATE ─────────────────────────────────────────── */
+/* SETTINGS */
+.sgroup{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.sgroup-hdr{padding:11px 14px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.5px;text-transform:uppercase}
+.sgroup-body{padding:14px;display:flex;flex-direction:column;gap:14px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg{margin:0}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.3px;text-transform:uppercase;margin-bottom:6px}
+.fg input,.fg select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:12px 13px;font-size:15px;color:var(--text);-webkit-appearance:none}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--blue)}
+
+/* MODAL / SHEET */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:.25s}
+.overlay.open{opacity:1;pointer-events:all}
+.sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-height:92vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom,0);transform:translateY(100%);transition:.3s cubic-bezier(.32,0,.67,0)}
+.overlay.open .sheet{transform:translateY(0)}
+.drag{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0}
+.sheet-hdr{padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.sheet-hdr h2{font-size:17px;font-weight:700}
+.sclose{background:var(--bg3);border:none;color:var(--text2);width:30px;height:30px;border-radius:15px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.sheet-body{padding:16px 18px 20px}
+.mfg{margin-bottom:14px}
+.mfg label{display:block;font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.3px;text-transform:uppercase;margin-bottom:6px}
+.mfg input,.mfg select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:13px 14px;font-size:16px;color:var(--text);-webkit-appearance:none}
+.mfg input:focus,.mfg select:focus{outline:none;border-color:var(--blue)}
+.prev-box{background:var(--lt-blue);border-radius:var(--rs);padding:13px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.prev-lbl{font-size:13px;font-weight:600;color:var(--blue)}
+.prev-val{font-size:22px;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums}
+.save-btn{width:100%;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);padding:15px;font-size:16px;font-weight:700;cursor:pointer}
+.save-btn:active{background:var(--blue2)}
+.big-btn{width:100%;border:none;border-radius:var(--rs);padding:15px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px}
+
+/* SETUP */
+.setup-banner{background:var(--lt-amber);border:1px solid var(--amber);border-radius:var(--r);padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.setup-banner.hidden{display:none}
+.setup-text{flex:1;font-size:13px;color:var(--amber);font-weight:500}
+.setup-cta{background:var(--amber);color:#000;border:none;border-radius:6px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+
 .empty{padding:40px 20px;text-align:center}
-.empty-icon{font-size:40px;margin-bottom:12px;opacity:.5}
+.empty-icon{font-size:40px;margin-bottom:12px;opacity:.4}
 .empty-text{font-size:15px;color:var(--text2)}
-.empty-sub{font-size:13px;color:var(--text3);margin-top:4px}
+.empty-sub{font-size:13px;color:var(--text3);margin-top:5px}
+
+.toast{position:fixed;bottom:calc(88px + env(safe-area-inset-bottom,0));left:50%;transform:translateX(-50%) translateY(20px);z-index:300;background:#fff;color:#111;border-radius:20px;padding:10px 20px;font-size:14px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.35);white-space:nowrap;pointer-events:none;opacity:0;transition:.25s}
+
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--text3);font-size:14px;gap:10px}
+.spinner{width:20px;height:20px;border:2px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <div class="h-title">Expense <span>Tracker</span></div>
-  <div class="month-pill">
-    <button class="mprev" onclick="chMonth(-1)">‹</button>
-    <span class="mname" id="mname">May 2026</span>
-    <button class="mnext" onclick="chMonth(1)">›</button>
+  <div class="h-right">
+    <div class="month-pill">
+      <button class="mpb" onclick="chMonth(-1)">‹</button>
+      <span class="mname" id="mname">May 2026</span>
+      <button class="mpb" onclick="chMonth(1)">›</button>
+    </div>
+    <div class="sync-dot" id="sync-dot" title="Sync status"></div>
   </div>
 </div>
 
-<!-- SCROLL AREA -->
 <div class="scroll" id="scroll">
 
-  <!-- DASHBOARD PAGE -->
+  <!-- DASHBOARD -->
   <div class="page active" id="p-dash">
     <div style="padding:16px">
-      <div class="hero" id="hero-card">
+      <div class="setup-banner" id="setup-banner">
+        <span class="setup-text">Connect your Google Sheet to load live data</span>
+        <button class="setup-cta" onclick="openSetup()">Connect →</button>
+      </div>
+      <div class="hero" id="h-income-card" style="background:linear-gradient(135deg,#1d4ed8,#4f46e5)">
         <div class="hero-label">Total Income</div>
         <div class="hero-val" id="h-income">—</div>
-        <div class="hero-sub" id="h-income-sub"></div>
+        <div class="hero-sub" id="h-income-sub">incl. carry-over</div>
       </div>
-      <div class="hero-row">
-        <div class="hero-mini" style="background:rgba(45,212,191,.15)">
-          <div class="hm-label">Rent After Adj.</div>
-          <div class="hm-val" id="h-rent">—</div>
+      <div class="mini-row">
+        <div class="mini" style="background:rgba(45,212,191,.12);border:1px solid rgba(45,212,191,.2)">
+          <div class="mini-lbl">Rent After Adj.</div>
+          <div class="mini-val" id="h-rent">—</div>
         </div>
-        <div class="hero-mini" style="background:rgba(168,139,250,.15)">
-          <div class="hm-label">CC Charges</div>
-          <div class="hm-val" id="h-cc">—</div>
+        <div class="mini" style="background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.2)">
+          <div class="mini-lbl">CC Charges</div>
+          <div class="mini-val" id="h-cc">—</div>
         </div>
       </div>
-      <div class="hero" id="hero-left" style="background:linear-gradient(135deg,#059669,#10b981)">
+      <div class="hero" id="h-left-card" style="background:linear-gradient(135deg,#059669,#10b981)">
         <div class="hero-label">💵 Money Left Over</div>
         <div class="hero-val" id="h-left">—</div>
         <div class="hero-sub" id="h-left-sub"></div>
       </div>
-
       <p class="sec">Spending Breakdown</p>
-      <div class="card" id="cat-card"></div>
-
+      <div class="card" id="cat-card"><div class="loading"><div class="spinner"></div>Loading...</div></div>
       <p class="sec">Credit Cards</p>
-      <div class="card" id="cc-card"></div>
+      <div class="card" id="cc-card"><div class="loading"><div class="spinner"></div>Loading...</div></div>
     </div>
   </div>
 
-  <!-- LOG PAGE -->
+  <!-- LOG -->
   <div class="page" id="p-log">
     <div style="padding:16px">
-      <div class="card" id="log-card"></div>
+      <div class="card" id="log-card"><div class="loading"><div class="spinner"></div>Loading...</div></div>
     </div>
   </div>
 
-  <!-- INVESTMENTS PAGE -->
+  <!-- INVESTMENTS -->
   <div class="page" id="p-invest">
     <div style="padding:16px">
       <p class="sec" style="margin-top:0">Brokerage & IRA</p>
       <div class="card" id="brok-card"></div>
-
-      <p class="sec">Ally Savings</p>
+      <p class="sec">Ally Savings Buckets</p>
       <div class="ally-grid" id="ally-grid"></div>
       <div class="card">
-        <div class="stat-row">
-          <div class="sr-icon" style="background:var(--lt-teal)">🏦</div>
+        <div class="sr"><div class="sr-icon" style="background:var(--lt-teal)">🏦</div>
           <div class="sr-main"><div class="sr-name">Total Ally Balance</div></div>
-          <div class="sr-right"><div class="sr-amt" style="color:var(--teal)" id="ally-total">—</div></div>
+          <div class="sr-r"><div class="sr-amt" style="color:var(--teal)" id="ally-total">—</div></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SHARON PAGE -->
+  <!-- SHARON -->
   <div class="page" id="p-sharon">
     <div style="padding:16px">
-      <div class="sharon-total">
-        <div class="st-label">Sharon's Rent This Month</div>
-        <div class="st-val" id="sh-total">—</div>
-        <div class="st-sub" id="sh-sub"></div>
+      <div class="sharon-hero">
+        <div class="hero-label">Sharon's Rent This Month</div>
+        <div class="hero-val" id="sh-total">—</div>
+        <div class="hero-sub" id="sh-sub"></div>
       </div>
       <div class="card" id="sharon-card"></div>
     </div>
   </div>
 
-  <!-- SETTINGS PAGE -->
+  <!-- SETTINGS -->
   <div class="page" id="p-settings">
     <div style="padding:16px">
+      <!-- GOOGLE SHEETS CONNECTION -->
       <div class="sgroup">
-        <div class="sgroup-hdr">Income</div>
+        <div class="sgroup-hdr">🔗 Google Sheets Connection</div>
         <div class="sgroup-body">
-          <div class="fg"><label>Paycheck #1 — Mid Month ($)</label><input type="number" id="s-p1" step="0.01" inputmode="decimal"></div>
-          <div class="fg"><label>Paycheck #2 — End of Month ($)</label><input type="number" id="s-p2" step="0.01" inputmode="decimal"></div>
-          <div class="fg"><label>Carry-Over from Prior Month ($)</label><input type="number" id="s-carry" step="0.01" inputmode="decimal" placeholder="0"></div>
+          <div class="fg"><label>OAuth Client ID</label>
+            <input type="text" id="cfg-client" placeholder="xxx.apps.googleusercontent.com" autocomplete="off"></div>
+          <div class="fg"><label>Google Sheet ID</label>
+            <input type="text" id="cfg-sheet" placeholder="Paste Sheet ID from URL" autocomplete="off"></div>
+          <button class="big-btn" style="background:var(--blue);color:#fff" onclick="saveConfig()">Connect to Google Sheet →</button>
+          <button class="big-btn" style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)" onclick="exportCSV()">⬇ Export Current Month CSV</button>
         </div>
       </div>
+
       <div class="sgroup">
-        <div class="sgroup-hdr">Rent</div>
+        <div class="sgroup-hdr">📋 How to find your Sheet ID</div>
         <div class="sgroup-body">
-          <div class="fg"><label>Full Monthly Rent ($)</label><input type="number" id="s-rent" step="0.01" inputmode="decimal"></div>
-          <div class="fg"><label>Your Split %</label><input type="number" id="s-rp" min="0" max="100" inputmode="decimal"></div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.6">
+            Open your Google Sheet → look at the URL:<br>
+            <span style="font-family:monospace;font-size:12px;color:var(--blue);background:var(--bg3);padding:4px 8px;border-radius:5px;display:inline-block;margin-top:6px">
+              docs.google.com/spreadsheets/d/<span style="color:var(--amber)">SHEET_ID</span>/edit
+            </span><br><br>
+            Copy only the highlighted part between <code>/d/</code> and <code>/edit</code>
+          </p>
         </div>
       </div>
+
       <div class="sgroup">
-        <div class="sgroup-hdr">Investments Added This Month</div>
+        <div class="sgroup-hdr">📋 How to get your Client ID</div>
         <div class="sgroup-body">
-          <div class="fg"><label>Robinhood Brokerage — Added ($)</label><input type="number" id="s-ra" step="0.01" inputmode="decimal"></div>
-          <div class="fg"><label>Robinhood — Balance ($)</label><input type="number" id="s-rb" step="0.01" inputmode="decimal"></div>
-          <div class="fg"><label>Vanguard IRA — Added ($)</label><input type="number" id="s-va" step="0.01" inputmode="decimal"></div>
-          <div class="fg"><label>Vanguard — Balance ($)</label><input type="number" id="s-vb" step="0.01" inputmode="decimal"></div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.6">
+            1. Go to <strong style="color:var(--text)">console.cloud.google.com</strong><br>
+            2. APIs & Services → Credentials<br>
+            3. Click your OAuth 2.0 Client ID<br>
+            4. Make sure <strong style="color:var(--amber)">https://duyanblob.github.io</strong> is in Authorized JavaScript Origins<br>
+            5. Copy the Client ID
+          </p>
         </div>
       </div>
-      <div class="sgroup">
-        <div class="sgroup-hdr">Ally Savings Buckets</div>
-        <div class="sgroup-body">
-          <div class="fgrid">
-            <div class="fg"><label>Wants — Added ($)</label><input type="number" id="s-wa" step="0.01" inputmode="decimal"></div>
-            <div class="fg"><label>Wants — Balance ($)</label><input type="number" id="s-wb" step="0.01" inputmode="decimal"></div>
-          </div>
-          <div class="fgrid">
-            <div class="fg"><label>Vacation — Added ($)</label><input type="number" id="s-vca" step="0.01" inputmode="decimal"></div>
-            <div class="fg"><label>Vacation — Balance ($)</label><input type="number" id="s-vcb" step="0.01" inputmode="decimal"></div>
-          </div>
-          <div class="fgrid">
-            <div class="fg"><label>Car Fund — Added ($)</label><input type="number" id="s-ca" step="0.01" inputmode="decimal"></div>
-            <div class="fg"><label>Car Fund — Balance ($)</label><input type="number" id="s-cb" step="0.01" inputmode="decimal"></div>
-          </div>
-          <div class="fgrid">
-            <div class="fg"><label>Emergency Fund — Added ($)</label><input type="number" id="s-ea" step="0.01" inputmode="decimal"></div>
-            <div class="fg"><label>Emergency Fund — Balance ($)</label><input type="number" id="s-eb" step="0.01" inputmode="decimal"></div>
-          </div>
-        </div>
-      </div>
-      <button class="settings-save" onclick="saveSettings()">Save Settings ✓</button>
-      <div style="height:16px"></div>
-      <button onclick="exportCSV()" style="width:100%;background:var(--bg3);color:var(--text2);
-        border:1px solid var(--border);border-radius:var(--rs);padding:14px;font-size:15px;
-        font-weight:600;cursor:pointer;margin-top:0">⬇ Export CSV</button>
     </div>
   </div>
 
 </div><!-- /scroll -->
 
-<!-- BOTTOM NAV -->
 <nav class="bottom-nav">
-  <button class="bnav-item active" onclick="nav('dash')" id="bn-dash">
-    <span class="bnav-icon">📊</span>Dashboard
-  </button>
-  <button class="bnav-item" onclick="nav('log')" id="bn-log">
-    <span class="bnav-icon">📋</span>Log
-  </button>
-  <button class="bnav-item" onclick="nav('invest')" id="bn-invest">
-    <span class="bnav-icon">📈</span>Invest
-  </button>
-  <button class="bnav-item" onclick="nav('sharon')" id="bn-sharon">
-    <span class="bnav-icon">🔁</span>Sharon
-  </button>
-  <button class="bnav-item" onclick="nav('settings')" id="bn-settings">
-    <span class="bnav-icon">⚙️</span>Settings
-  </button>
+  <button class="bni active" onclick="nav('dash')" id="bn-dash"><span class="bni-icon">📊</span>Dashboard</button>
+  <button class="bni" onclick="nav('log')"  id="bn-log"> <span class="bni-icon">📋</span>Log</button>
+  <button class="bni" onclick="nav('invest')" id="bn-invest"><span class="bni-icon">📈</span>Invest</button>
+  <button class="bni" onclick="nav('sharon')" id="bn-sharon"><span class="bni-icon">🔁</span>Sharon</button>
+  <button class="bni" onclick="nav('settings')" id="bn-settings"><span class="bni-icon">⚙️</span>Settings</button>
 </nav>
 
-<!-- FAB -->
 <button class="fab" id="fab" onclick="openAdd()">＋</button>
 
 <!-- ADD EXPENSE SHEET -->
-<div class="overlay" id="add-overlay" onclick="overlayTap(event)">
+<div class="overlay" id="add-overlay" onclick="bgTap(event,'add-overlay')">
   <div class="sheet">
-    <div class="sheet-drag"></div>
-    <div class="sheet-hdr">
-      <h2>Add Expense</h2>
-      <button class="sheet-close" onclick="closeAdd()">×</button>
-    </div>
+    <div class="drag"></div>
+    <div class="sheet-hdr"><h2>Add Expense</h2><button class="sclose" onclick="closeOverlay('add-overlay')">×</button></div>
     <div class="sheet-body">
-      <div class="fg"><label>Date</label><input type="date" id="f-date"></div>
-      <div class="fg"><label>Description</label>
-        <input type="text" id="f-desc" placeholder="e.g. Trader Joe's" autocomplete="off"></div>
-      <div class="fgrid">
-        <div class="fg"><label>Category</label>
+      <div class="mfg"><label>Date</label><input type="date" id="f-date"></div>
+      <div class="mfg"><label>Description</label><input type="text" id="f-desc" placeholder="e.g. Trader Joe's" autocomplete="off"></div>
+      <div class="fgrid" style="margin-bottom:14px">
+        <div class="mfg"><label>Category</label>
           <select id="f-cat">
-            <option>Groceries</option><option>Utilities</option>
-            <option>Gas / Transport</option><option>Dining / Takeout</option>
-            <option>Entertainment</option><option>Health</option>
-            <option>Shopping</option><option>Subscriptions</option>
-            <option>Cash</option><option>Personal / Misc</option><option>Other</option>
+            <option>Groceries</option><option>Utilities</option><option>Gas / Transport</option>
+            <option>Dining / Takeout</option><option>Entertainment</option><option>Health</option>
+            <option>Shopping</option><option>Subscriptions</option><option>Cash</option>
+            <option>Personal / Misc</option><option>Other</option>
           </select>
         </div>
-        <div class="fg"><label>Credit Card</label>
+        <div class="mfg"><label>Credit Card</label>
           <select id="f-cc">
             <option value="">— Sharon paid</option>
-            <option>CFF</option><option>CFU</option><option>CSP</option>
-            <option>Discover</option><option>Citi</option><option>Capital One</option>
-            <option>WF</option><option>Amazon Card</option><option>Robinhood</option>
-            <option>Cash</option><option>Other</option>
+            <option>CFF</option><option>CFU</option><option>CSP</option><option>Discover</option>
+            <option>Citi</option><option>Capital One</option><option>WF</option>
+            <option>Amazon Card</option><option>Robinhood</option><option>Cash</option><option>Other</option>
           </select>
         </div>
       </div>
-      <div class="fgrid">
-        <div class="fg"><label>Total ($)</label>
-          <input type="number" id="f-total" placeholder="0.00" step="0.01"
-            inputmode="decimal" oninput="calcPrev()"></div>
-        <div class="fg"><label>Your Split %</label>
-          <input type="number" id="f-split" value="100" min="0" max="100"
-            inputmode="decimal" oninput="calcPrev()"></div>
+      <div class="fgrid" style="margin-bottom:14px">
+        <div class="mfg"><label>Total ($)</label><input type="number" id="f-total" placeholder="0.00" step="0.01" inputmode="decimal" oninput="calcPrev()"></div>
+        <div class="mfg"><label>Your Split %</label><input type="number" id="f-split" value="100" min="0" max="100" inputmode="decimal" oninput="calcPrev()"></div>
       </div>
-      <div class="preview-box">
-        <span class="prev-lbl">Your Share</span>
-        <span class="prev-val" id="f-prev">$0.00</span>
-      </div>
-      <div class="fg"><label>Notes</label>
-        <input type="text" id="f-notes" placeholder="Optional..." autocomplete="off"></div>
+      <div class="prev-box"><span class="prev-lbl">Your Share</span><span class="prev-val" id="f-prev">$0.00</span></div>
+      <div class="mfg"><label>Notes</label><input type="text" id="f-notes" placeholder="Optional..." autocomplete="off"></div>
       <button class="save-btn" onclick="saveExpense()">Save Expense</button>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
-<div style="position:fixed;bottom:calc(90px + env(safe-area-inset-bottom,0));left:50%;
-  transform:translateX(-50%) translateY(20px);z-index:300;opacity:0;transition:.25s;
-  background:#fff;color:#111;border-radius:20px;padding:10px 20px;font-size:14px;
-  font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.3);white-space:nowrap;pointer-events:none"
-  id="toast"></div>
+<div class="toast" id="toast"></div>
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
+// ─── CONSTANTS ────────────────────────────────────────────
 const MONTHS  = ['May 2026','Jun 2026','Jul 2026','Aug 2026','Sep 2026','Oct 2026','Nov 2026','Dec 2026'];
 const MDATES  = ['2026-05-01','2026-06-01','2026-07-01','2026-08-01','2026-09-01','2026-10-01','2026-11-01','2026-12-01'];
-const EVEN_MI = new Set([1,3,5,7]);
 const CATS    = ['Groceries','Utilities','Gas / Transport','Dining / Takeout','Entertainment','Health','Shopping','Subscriptions','Cash','Personal / Misc','Other'];
 const CCS     = ['CFF','CFU','CSP','Discover','Citi','Capital One','WF','Amazon Card','Robinhood','Cash','Other'];
+const CAT_ICON= {'Groceries':'🛒','Utilities':'💡','Gas / Transport':'⛽','Dining / Takeout':'🍕','Entertainment':'🎮','Health':'💊','Shopping':'🛍','Subscriptions':'📱','Cash':'💵','Personal / Misc':'👤','Other':'📦'};
+const CAT_COL = {'Groceries':'#22c55e','Utilities':'#f59e0b','Gas / Transport':'#3b82f6','Dining / Takeout':'#f97316','Entertainment':'#a855f7','Health':'#ec4899','Shopping':'#14b8a6','Subscriptions':'#6366f1','Cash':'#64748b','Personal / Misc':'#78716c','Other':'#94a3b8'};
 
-const CAT_ICONS = {
-  'Groceries':'🛒','Utilities':'💡','Gas / Transport':'⛽','Dining / Takeout':'🍕',
-  'Entertainment':'🎮','Health':'💊','Shopping':'🛍','Subscriptions':'📱',
-  'Cash':'💵','Personal / Misc':'👤','Other':'📦'
+// EXACT ROW MAPPING (1-indexed, matching spreadsheet)
+const ROWS = {
+  // Settings
+  pay1:'D6', pay2:'H6', rent:'D7', rentPct:'H7', savGoal:'D8', income:'H8', carry:'D9',
+  // Category summary: rows 12-22 = cats, 23=adjRent, 24=invest, 25=totalOut, 26=leftover
+  catStart:12, catEnd:22, adjRentRow:23, investRow:24, totalOutRow:25, leftoverRow:26,
+  // CC: rows 29-39 = cards, 40=total
+  ccStart:29, ccEnd:39, ccTotal:40,
+  // Investments: D=added, F=balance
+  robRow:44, vanRow:45, wantsRow:48, vacRow:49, carRow:50, emergRow:51, allyTotRow:52,
+  // Monthly summary
+  incomeSum:56, adjRentSum:59, ccChargesSum:61, investedSum:62, totalOutSum:63, leftoverSum:64,
+  // Sharon
+  sharonBase:67, sheCovered:68, youCovered:69, sharonTotal:70, youOwe:71,
+  // Log
+  logStart:12, logEnd:131,
+  // Log columns (letter)
+  logDate:'K', logDesc:'L', logCat:'M', logCC:'N', logTotal:'O', logSplit:'P', logShare:'Q', logNotes:'R'
 };
-const CAT_COLORS = {
-  'Groceries':'#22c55e','Utilities':'#f59e0b','Gas / Transport':'#3b82f6',
-  'Dining / Takeout':'#f97316','Entertainment':'#a855f7','Health':'#ec4899',
-  'Shopping':'#14b8a6','Subscriptions':'#6366f1','Cash':'#64748b',
-  'Personal / Misc':'#78716c','Other':'#94a3b8'
-};
-const CC_ICONS = {
-  'CFF':'C1','CFU':'C2','CSP':'C3','Discover':'Dis','Citi':'Cit',
-  'Capital One':'Cap','WF':'WF','Amazon Card':'Amz','Robinhood':'RH','Cash':'$','Other':'?'
-};
 
-const PREPLANNED = [
-  {desc:'Car Insurance',    cat:'Gas / Transport',cc:'Cash',       total:65.00, split:1.0},
-  {desc:'Stronghold',       cat:'Health',         cc:'Robinhood',  total:105.00,split:1.0},
-  {desc:'Spectrum Internet',cat:'Utilities',      cc:'Discover',   total:41.25, split:0.5},
-  {desc:'Amazon Prime',     cat:'Subscriptions',  cc:'Amazon Card',total:7.65,  split:1.0},
-  {desc:'Spotify',          cat:'Subscriptions',  cc:'Capital One',total:21.99, split:1.0},
-  {desc:'Electricity',      cat:'Utilities',      cc:'',           total:170.00,split:0.5,evenOnly:true},
-  {desc:'Twitch Sub',       cat:'Subscriptions',  cc:'CFF',        total:5.99,  split:1.0},
-  {desc:'Claude AI',        cat:'Subscriptions',  cc:'Robinhood',  total:20.00, split:1.0},
-  {desc:'Discord',          cat:'Subscriptions',  cc:'CFF',        total:9.99,  split:1.0},
-];
+// ─── STATE ────────────────────────────────────────────────
+let mi=0, curView='dash', token=null, cfg=null, loading=false;
 
-const ALLY_START={wants:3600,vac:7650,car:10000,emerg:6102};
-const ALLY_MO   ={wants:120, vac:200, car:400,  emerg:140};
+// ─── CONFIG ───────────────────────────────────────────────
+function loadConfig(){
+  try{ cfg=JSON.parse(localStorage.getItem('et_cfg')||'null'); }catch(e){}
+  if(cfg){
+    document.getElementById('cfg-client').value=cfg.clientId||'';
+    document.getElementById('cfg-sheet').value=cfg.sheetId||'';
+  }
+}
+function saveConfig(){
+  const clientId=document.getElementById('cfg-client').value.trim();
+  const sheetId =document.getElementById('cfg-sheet').value.trim();
+  if(!clientId||!sheetId){toast('Enter both Client ID and Sheet ID','#ef4444');return;}
+  cfg={clientId,sheetId};
+  localStorage.setItem('et_cfg',JSON.stringify(cfg));
+  toast('Connecting...','#1d4ed8');
+  initAuth();
+}
+function openSetup(){ nav('settings'); }
 
-let mi=0,curView='dash';
-
-function initStorage(){
-  if(localStorage.getItem('et3_v')) return;
-  MONTHS.forEach((_,i)=>{
-    if(!localStorage.getItem('et3_s_'+i)){
-      localStorage.setItem('et3_s_'+i,JSON.stringify({
-        p1:2500,p2:2500,rent:2221.40,rp:50,carry:0,ra:0,rb:0,va:0,vb:0,
-        wa:ALLY_MO.wants,  wb:ALLY_START.wants +(i*ALLY_MO.wants),
-        vca:ALLY_MO.vac,   vcb:ALLY_START.vac  +(i*ALLY_MO.vac),
-        ca:ALLY_MO.car,    cb:ALLY_START.car   +(i*ALLY_MO.car),
-        ea:ALLY_MO.emerg,  eb:ALLY_START.emerg +(i*ALLY_MO.emerg),
-      }));
-    }
-    if(!localStorage.getItem('et3_log_'+i)){
-      const rows=PREPLANNED.filter(p=>!p.evenOnly||EVEN_MI.has(i))
-        .map(p=>({id:Date.now()+Math.random(),date:MDATES[i],
-          desc:p.desc,cat:p.cat,cc:p.cc,total:p.total,split:p.split,
-          share:+(p.total*p.split).toFixed(2),notes:'Auto-pay',pre:true}));
-      localStorage.setItem('et3_log_'+i,JSON.stringify(rows));
+// ─── GOOGLE AUTH ──────────────────────────────────────────
+function initAuth(){
+  if(!cfg) return;
+  if(!window.google){ setTimeout(initAuth,500); return; }
+  const client=google.accounts.oauth2.initTokenClient({
+    client_id:cfg.clientId,
+    scope:'https://www.googleapis.com/auth/spreadsheets',
+    callback:(r)=>{
+      if(r.access_token){
+        token=r.access_token;
+        setSynced(true);
+        document.getElementById('setup-banner').classList.add('hidden');
+        loadData();
+      } else {
+        setSynced(false);
+        toast('Auth failed — check Client ID','#ef4444');
+      }
     }
   });
-  localStorage.setItem('et3_v','1');
+  client.requestAccessToken();
+}
+function setSynced(on){
+  document.getElementById('sync-dot').className='sync-dot'+(on?' live':'');
 }
 
-const getS  =i=>JSON.parse(localStorage.getItem('et3_s_'+i)||'{}');
-const getLog=i=>JSON.parse(localStorage.getItem('et3_log_'+i)||'[]');
-const setLog=(i,l)=>localStorage.setItem('et3_log_'+i,JSON.stringify(l));
-
-function calc(idx){
-  const s=getS(idx),log=getLog(idx);
-  const p1=+s.p1||0,p2=+s.p2||0,carry=+s.carry||0,income=p1+p2+carry;
-  const rent=+s.rent||2221.40,rp=(+s.rp||50)/100;
-  const ccCharges  =log.filter(r=>r.cc).reduce((a,r)=>a+(+r.total||0),0);
-  const partCred   =log.filter(r=>!r.cc).reduce((a,r)=>a+(+r.share||0),0);
-  const youCov     =log.filter(r=>r.cc&&+r.split<1).reduce((a,r)=>a+(r.total*(1-r.split)),0);
-  const adjRent    =Math.max(rent*rp-youCov+partCred,0);
-  const invested   =(+s.ra||0)+(+s.va||0);
-  const totalOut   =adjRent+ccCharges+invested;
-  const leftover   =income-totalOut;
-  const catT={};CATS.forEach(c=>catT[c]=0);
-  log.forEach(r=>{if(catT[r.cat]!==undefined)catT[r.cat]+=(+r.share||0);});
-  const ccT={};CCS.forEach(c=>ccT[c]=0);
-  log.filter(r=>r.cc).forEach(r=>{if(ccT[r.cc]!==undefined)ccT[r.cc]+=(+r.total||0);});
-  const sharonBase =rent*(1-rp);
-  const sharonTotal=Math.max(sharonBase+youCov-partCred,0);
-  const youOwe     =Math.max(partCred-sharonBase,0);
-  return{income,adjRent,ccCharges,partCred,youCov,invested,totalOut,leftover,
-    catT,ccT,sharonBase,sharonTotal,youOwe,log,s,p1,p2,carry};
+// ─── SHEETS API ───────────────────────────────────────────
+async function sheetsGet(range){
+  if(!token||!cfg) return null;
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent(range)}`;
+  const r=await fetch(url,{headers:{Authorization:'Bearer '+token}});
+  if(r.status===401){token=null;setSynced(false);return null;}
+  if(!r.ok) return null;
+  return (await r.json()).values||[];
+}
+async function sheetsBatchGet(ranges){
+  if(!token||!cfg) return null;
+  const q=ranges.map(r=>`ranges=${encodeURIComponent(r)}`).join('&');
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values:batchGet?${q}`;
+  const r=await fetch(url,{headers:{Authorization:'Bearer '+token}});
+  if(r.status===401){token=null;setSynced(false);return null;}
+  if(!r.ok) return null;
+  return (await r.json()).valueRanges;
+}
+async function sheetsAppend(range,values){
+  if(!token||!cfg) return false;
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+  const r=await fetch(url,{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values})});
+  return r.ok;
 }
 
+// ─── LOAD DATA ────────────────────────────────────────────
+async function loadData(){
+  if(!token||!cfg) return;
+  loading=true;
+  const mn=MONTHS[mi];
+
+  const ranges=[
+    `'${mn}'!D6:H9`,                          // [0] settings (4 rows, D-H)
+    `'${mn}'!D12:E26`,                         // [1] category summary (D=share, E=pct)
+    `'${mn}'!D29:D40`,                         // [2] CC totals (D=amount)
+    `'${mn}'!D44:F52`,                         // [3] investments (D=added, F=balance)
+    `'${mn}'!D56:D71`,                         // [4] monthly summary + sharon
+    `'${mn}'!K12:R${ROWS.logEnd}`,             // [5] log entries
+  ];
+
+  const vr=await sheetsBatchGet(ranges);
+  if(!vr){ loading=false; return; }
+
+  const g=(a,r,c)=>parseFloat((a[r]||[])[c]||0)||0;
+  const s=(a,r,c)=>((a[r]||[])[c]||'').toString().trim();
+
+  // [0] Settings: rows indexed from 0 = D6,D7,D8,D9; cols 0=D,1=E,2=F,3=G,4=H
+  const SET=vr[0].values||[];
+  const pay1   =g(SET,0,0); // D6
+  const pay2   =g(SET,0,4); // H6
+  const rent   =g(SET,1,0); // D7
+  const rentPct=g(SET,1,4); // H7
+  const income =g(SET,2,4); // H8 = =D6+H6+D9 (calculated by sheet)
+  const carry  =g(SET,3,0); // D9
+
+  // [1] Category: rows 0-10=cats(D12-D22), 11=adjRent(D23), 12=invest(D24), 13=totalOut(D25), 14=leftover(D26)
+  const CAT=vr[1].values||[];
+  const catShares=CATS.map((_,i)=>g(CAT,i,0));
+  const catPcts  =CATS.map((_,i)=>g(CAT,i,1));
+  const adjRent  =g(CAT,11,0);
+  const adjRentPct=g(CAT,11,1);
+  const invested =g(CAT,12,0);
+  const investPct=g(CAT,12,1);
+  const totalOut =g(CAT,13,0);
+  const totalOutPct=g(CAT,13,1);
+  const leftover =g(CAT,14,0);
+  const leftoverPct=g(CAT,14,1);
+
+  // [2] CC: rows 0-10=CFF..Other, row 11=TOTAL (each row = 1 col = D)
+  const CC=vr[2].values||[];
+  const ccAmts=CCS.map((_,i)=>g(CC,i,0));
+  const ccTotal=g(CC,11,0);
+
+  // [3] Investments: rows indexed from 0 = D44; col 0=D, 2=F
+  // R44=rob(0), R45=van(1), R46=AllyHdr(2), R47=AllyColHdr(3)
+  // R48=Wants(4), R49=Vac(5), R50=Car(6), R51=Emerg(7), R52=AllyTot(8)
+  const INV=vr[3].values||[];
+  const robAdd=g(INV,0,0); const robBal=g(INV,0,2);
+  const vanAdd=g(INV,1,0); const vanBal=g(INV,1,2);
+  const wantsAdd=g(INV,4,0); const wantsBal=g(INV,4,2);
+  const vacAdd  =g(INV,5,0); const vacBal  =g(INV,5,2);
+  const carAdd  =g(INV,6,0); const carBal  =g(INV,6,2);
+  const emergAdd=g(INV,7,0); const emergBal=g(INV,7,2);
+  const allyTotal=g(INV,8,2);
+
+  // [4] Summary: indexed from 0 = D56
+  // R56=income[0], R57=baseRent[1], R58=youCov[2], R59=adjRent[3]
+  // R60=blank[4], R61=ccCharges[5], R62=invested[6], R63=totalOut[7], R64=leftover[8]
+  // R65=blank[9], R66=sharonHdr[10], R67=sharonBase[11], R68=sheCovered[12]
+  // R69=youCovered[13], R70=sharonTotal[14], R71=youOwe[15]
+  const SUM=vr[4].values||[];
+  const sharonBase =g(SUM,11,0);
+  const sheCovered =g(SUM,12,0);
+  const youCovered =g(SUM,13,0);
+  const sharonTotal=g(SUM,14,0);
+  const youOwe     =g(SUM,15,0);
+
+  // [5] Log: K=date[0], L=desc[1], M=cat[2], N=cc[3], O=total[4], P=split[5], Q=share[6], R=notes[7]
+  const LOG=(vr[5].values||[]).filter(r=>(r[1]||'').trim());
+  const logRows=LOG.map((r,i)=>({
+    idx:i,date:r[0]||'',desc:r[1]||'',cat:r[2]||'',cc:r[3]||'',
+    total:parseFloat(r[4])||0,split:parseFloat(r[5])||1,
+    share:parseFloat(r[6])||0,notes:r[7]||'',
+    pre: i < 9 // first 9 rows are pre-planned
+  }));
+
+  loading=false;
+
+  renderDash({income,pay1,pay2,carry,adjRent,adjRentPct,ccTotal,leftover,leftoverPct,
+    totalOut,totalOutPct,invested,investPct,catShares,catPcts,ccAmts});
+  renderLog(logRows);
+  renderInvest({robAdd,robBal,vanAdd,vanBal,wantsAdd,wantsBal,vacAdd,vacBal,carAdd,carBal,emergAdd,emergBal,allyTotal});
+  renderSharon({sharonBase,sheCovered,youCovered,sharonTotal,youOwe});
+}
+
+// ─── RENDER FUNCTIONS ─────────────────────────────────────
 const fmt=n=>'$'+(Math.abs(+n||0)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const pct=n=>(((+n||0)*100).toFixed(1))+'%';
 
-function render(){
-  const d=calc(mi),inc=d.income||1;
-
-  // Header
-  document.getElementById('mname').textContent=MONTHS[mi];
-
-  // Dashboard
+function renderDash(d){
+  const inc=d.income||1;
   document.getElementById('h-income').textContent=fmt(d.income);
   document.getElementById('h-income-sub').textContent=
-    `${fmt(d.p1)} + ${fmt(d.p2)}${d.carry?` + ${fmt(d.carry)} carried`:''}`;
+    `${fmt(d.pay1)} + ${fmt(d.pay2)}${d.carry?` + ${fmt(d.carry)} carried`:''}`;
   document.getElementById('h-rent').textContent=fmt(d.adjRent);
-  document.getElementById('h-cc').textContent=fmt(d.ccCharges);
+  document.getElementById('h-cc').textContent=fmt(d.ccTotal);
   document.getElementById('h-left').textContent=fmt(d.leftover);
-  document.getElementById('h-left-sub').textContent=pct(d.leftover/inc)+' of income';
-  const hl=document.getElementById('hero-left');
-  hl.style.background=d.leftover<0
+  document.getElementById('h-left-sub').textContent=pct(d.leftoverPct)+' of income';
+  document.getElementById('h-left-card').style.background=d.leftover<0
     ?'linear-gradient(135deg,#b91c1c,#ef4444)'
     :'linear-gradient(135deg,#059669,#10b981)';
 
   // Categories
-  const maxS=Math.max(...CATS.map(c=>d.catT[c]||0),d.adjRent,d.invested,1);
-  let catHTML=CATS.filter(c=>d.catT[c]>0).map(c=>{
-    const sh=d.catT[c],col=CAT_COLORS[c]||'#6366f1',bw=Math.round((sh/maxS)*100);
-    return`<div class="stat-row">
-      <div class="sr-icon" style="background:${col}22">${CAT_ICONS[c]||'📦'}</div>
-      <div class="sr-main">
-        <div class="sr-name">${c}</div>
+  const maxS=Math.max(...d.catShares,d.adjRent,1);
+  let html=CATS.filter((_,i)=>d.catShares[i]>0).map((_,i)=>{
+    const c=CATS[i],sh=d.catShares[i],col=CAT_COL[c]||'#6366f1',bw=Math.round((sh/maxS)*100);
+    return`<div class="sr">
+      <div class="sr-icon" style="background:${col}22">${CAT_ICON[c]}</div>
+      <div class="sr-main"><div class="sr-name">${c}</div>
         <div class="prog-wrap"><div class="prog" style="width:${bw}%;background:${col}"></div></div>
       </div>
-      <div class="sr-right">
-        <div class="sr-amt">${fmt(sh)}</div>
-        <div class="sr-pct">${pct(sh/inc)}</div>
-      </div>
+      <div class="sr-r"><div class="sr-amt">${fmt(sh)}</div><div class="sr-pct">${pct(d.catPcts[i])}</div></div>
     </div>`;
   }).join('');
-  catHTML+=`<div class="stat-row">
+  html+=`<div class="sr">
     <div class="sr-icon" style="background:var(--lt-blue)">🏠</div>
     <div class="sr-main"><div class="sr-name" style="color:var(--blue);font-weight:700">Adjusted Rent</div>
-      <div class="prog-wrap"><div class="prog" style="width:${Math.round((d.adjRent/maxS)*100)}%;background:var(--blue)"></div></div></div>
-    <div class="sr-right"><div class="sr-amt" style="color:var(--blue)">${fmt(d.adjRent)}</div><div class="sr-pct">${pct(d.adjRent/inc)}</div></div>
+      <div class="prog-wrap"><div class="prog" style="width:${Math.round((d.adjRent/maxS)*100)}%;background:var(--blue)"></div></div>
+    </div>
+    <div class="sr-r"><div class="sr-amt" style="color:var(--blue)">${fmt(d.adjRent)}</div><div class="sr-pct">${pct(d.adjRentPct)}</div></div>
   </div>`;
-  if(d.invested>0) catHTML+=`<div class="stat-row">
+  if(d.invested>0) html+=`<div class="sr">
     <div class="sr-icon" style="background:var(--lt-teal)">📈</div>
     <div class="sr-main"><div class="sr-name" style="color:var(--teal);font-weight:700">Investment</div>
-      <div class="prog-wrap"><div class="prog" style="width:${Math.round((d.invested/maxS)*100)}%;background:var(--teal)"></div></div></div>
-    <div class="sr-right"><div class="sr-amt" style="color:var(--teal)">${fmt(d.invested)}</div><div class="sr-pct">${pct(d.invested/inc)}</div></div>
+      <div class="prog-wrap"><div class="prog" style="width:${Math.round((d.invested/maxS)*100)}%;background:var(--teal)"></div></div>
+    </div>
+    <div class="sr-r"><div class="sr-amt" style="color:var(--teal)">${fmt(d.invested)}</div><div class="sr-pct">${pct(d.investPct)}</div></div>
   </div>`;
-  catHTML+=`<div class="stat-row" style="background:var(--lt-green);border-radius:0 0 var(--r) var(--r)">
+  html+=`<div class="sr" style="background:var(--lt-green)">
     <div class="sr-icon" style="background:rgba(74,222,128,.2)">💵</div>
     <div class="sr-main"><div class="sr-name" style="color:var(--green);font-weight:700">Money Left Over</div></div>
-    <div class="sr-right"><div class="sr-amt" style="color:var(--green)">${fmt(d.leftover)}</div><div class="sr-pct" style="color:var(--green);opacity:.7">${pct(d.leftover/inc)}</div></div>
+    <div class="sr-r"><div class="sr-amt" style="color:var(--green)">${fmt(d.leftover)}</div><div class="sr-pct" style="color:var(--green);opacity:.7">${pct(d.leftoverPct)}</div></div>
   </div>`;
-  document.getElementById('cat-card').innerHTML=catHTML;
+  document.getElementById('cat-card').innerHTML=html;
 
-  // CC card
-  const usedCC=CCS.filter(c=>d.ccT[c]>0);
+  // CC
+  const usedCC=CCS.filter((_,i)=>d.ccAmts[i]>0);
   document.getElementById('cc-card').innerHTML=
-    (usedCC.length?usedCC.map(c=>`<div class="stat-row">
-      <div class="sr-icon" style="background:var(--lt-purple);font-size:11px;font-weight:800;color:var(--purple)">${CC_ICONS[c]||c.slice(0,3)}</div>
-      <div class="sr-main"><div class="sr-name">${c}</div></div>
-      <div class="sr-right"><div class="sr-amt" style="color:var(--purple)">${fmt(d.ccT[c])}</div></div>
-    </div>`).join('')
-    :'<div class="empty"><div class="empty-icon">💳</div><div class="empty-text">No CC charges yet</div></div>')+
-    `<div class="stat-row" style="background:var(--lt-purple)">
+    (usedCC.length?usedCC.map(c=>{
+      const i=CCS.indexOf(c);
+      return`<div class="sr"><div class="sr-icon" style="background:var(--lt-purple);font-size:10px;font-weight:800;color:var(--purple)">${c.slice(0,4)}</div>
+        <div class="sr-main"><div class="sr-name">${c}</div></div>
+        <div class="sr-r"><div class="sr-amt" style="color:var(--purple)">${fmt(d.ccAmts[i])}</div></div>
+      </div>`;
+    }).join(''):'<div class="empty"><div class="empty-icon">💳</div><div class="empty-text">No CC charges yet</div></div>')+
+    `<div class="sr" style="background:var(--lt-purple)">
       <div class="sr-icon" style="background:var(--lt-purple)">💳</div>
       <div class="sr-main"><div class="sr-name" style="color:var(--purple);font-weight:700">Total CC Charges</div></div>
-      <div class="sr-right"><div class="sr-amt" style="color:var(--purple)">${fmt(d.ccCharges)}</div></div>
+      <div class="sr-r"><div class="sr-amt" style="color:var(--purple)">${fmt(d.ccTotal)}</div></div>
     </div>`;
+}
 
-  // Log
-  document.getElementById('log-card').innerHTML=d.log.length
-    ?d.log.map((r,i)=>{
-      const col=CAT_COLORS[r.cat]||'#6366f1';
-      return`<div class="log-row${r.pre?' pre':''}">
-        <div class="log-icon" style="background:${col}22">${CAT_ICONS[r.cat]||'📦'}</div>
-        <div class="log-main">
-          <div class="log-desc">${r.desc}</div>
-          <div class="log-meta">
-            <span class="chip chip-blue">${r.cat}</span>
-            ${r.cc?`<span class="chip chip-purple">${r.cc}</span>`:
-              r.split<1?'<span class="chip chip-green">Sharon paid</span>':''}
-          </div>
+function renderLog(rows){
+  document.getElementById('log-card').innerHTML=rows.length
+    ?rows.map(r=>`<div class="log-row${r.pre?' pre':''}">
+      <div class="log-icon" style="background:${(CAT_COL[r.cat]||'#6366f1')}22">${CAT_ICON[r.cat]||'📦'}</div>
+      <div class="log-main">
+        <div class="log-desc">${r.desc}</div>
+        <div class="log-meta">
+          <span class="chip chip-b">${r.cat}</span>
+          ${r.cc?`<span class="chip chip-p">${r.cc}</span>`:+r.split<1?'<span class="chip chip-g">Sharon paid</span>':''}
         </div>
-        <div class="log-right">
-          <div class="log-total">${fmt(r.total)}</div>
-          <div class="log-share">You: ${fmt(r.share)}</div>
-        </div>
-        <button class="del-btn" onclick="delRow(${i})">×</button>
-      </div>`;
-    }).join('')
-    :`<div class="empty"><div class="empty-icon">📋</div>
-      <div class="empty-text">No expenses yet</div>
-      <div class="empty-sub">Tap ＋ to add your first expense</div></div>`;
+      </div>
+      <div class="log-r">
+        <div class="log-total">${fmt(r.total)}</div>
+        <div class="log-share">You: ${fmt(r.share)}</div>
+      </div>
+    </div>`).join('')
+    :`<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No expenses logged</div><div class="empty-sub">Tap + to add your first expense</div></div>`;
+}
 
-  // Investments
-  const s=d.s;
+function renderInvest(d){
   document.getElementById('brok-card').innerHTML=`
-    <div class="stat-row">
-      <div class="sr-icon" style="background:rgba(45,212,191,.15)">🤖</div>
-      <div class="sr-main"><div class="sr-name" style="font-weight:700">Robinhood Brokerage</div>
-        <div class="sr-sub">+${fmt(+s.ra||0)} this month</div></div>
-      <div class="sr-right"><div class="sr-amt" style="color:var(--teal)">${fmt(+s.rb||0)}</div></div>
+    <div class="sr"><div class="sr-icon" style="background:rgba(45,212,191,.15)">🤖</div>
+      <div class="sr-main"><div class="sr-name" style="font-weight:700">Robinhood Brokerage</div><div class="sr-sub">+${fmt(d.robAdd)} this month</div></div>
+      <div class="sr-r"><div class="sr-amt" style="color:var(--teal)">${fmt(d.robBal)}</div></div>
     </div>
-    <div class="stat-row">
-      <div class="sr-icon" style="background:rgba(45,212,191,.15)">📊</div>
-      <div class="sr-main"><div class="sr-name" style="font-weight:700">Vanguard IRA</div>
-        <div class="sr-sub">+${fmt(+s.va||0)} this month</div></div>
-      <div class="sr-right"><div class="sr-amt" style="color:var(--teal)">${fmt(+s.vb||0)}</div></div>
+    <div class="sr"><div class="sr-icon" style="background:rgba(45,212,191,.15)">📊</div>
+      <div class="sr-main"><div class="sr-name" style="font-weight:700">Vanguard IRA</div><div class="sr-sub">+${fmt(d.vanAdd)} this month</div></div>
+      <div class="sr-r"><div class="sr-amt" style="color:var(--teal)">${fmt(d.vanBal)}</div></div>
     </div>`;
 
-  const ally=[{n:'Wants',a:'wa',b:'wb'},{n:'Vacation',a:'vca',b:'vcb'},
-    {n:'Car Fund',a:'ca',b:'cb'},{n:'Emergency Fund',a:'ea',b:'eb'}];
-  const ALLY_ICONS={Wants:'🛒',Vacation:'✈️','Car Fund':'🚗','Emergency Fund':'🆘'};
-  document.getElementById('ally-grid').innerHTML=ally.map(({n,a,b})=>
-    `<div class="abkt">
-      <div class="abname">${ALLY_ICONS[n]||'💰'} ${n}</div>
-      <div class="abval">${fmt(+s[b]||0)}</div>
-      <div class="absub">+${fmt(+s[a]||0)} this month</div>
-    </div>`
+  const ally=[{n:'Wants',e:'🛒',a:d.wantsAdd,b:d.wantsBal},{n:'Vacation',e:'✈️',a:d.vacAdd,b:d.vacBal},{n:'Car Fund',e:'🚗',a:d.carAdd,b:d.carBal},{n:'Emergency Fund',e:'🆘',a:d.emergAdd,b:d.emergBal}];
+  document.getElementById('ally-grid').innerHTML=ally.map(x=>
+    `<div class="abkt"><div class="abname">${x.e} ${x.n}</div><div class="abval">${fmt(x.b)}</div><div class="absub">+${fmt(x.a)} this month</div></div>`
   ).join('');
-  document.getElementById('ally-total').textContent=fmt(ally.reduce((sum,{b})=>sum+(+s[b]||0),0));
+  document.getElementById('ally-total').textContent=fmt(d.allyTotal);
+}
 
-  // Sharon
+function renderSharon(d){
   document.getElementById('sh-total').textContent=fmt(d.sharonTotal);
-  document.getElementById('sh-sub').textContent=d.youOwe>0
-    ?`You owe Sharon ${fmt(d.youOwe)}`
-    :d.sharonTotal>0?'Sharon owes landlord':'Sharon is all square';
+  document.getElementById('sh-sub').textContent=d.youOwe>0?`You owe Sharon ${fmt(d.youOwe)}`:
+    d.sharonTotal>0?'Sharon owes landlord':'All square';
   document.getElementById('sharon-card').innerHTML=`
-    <div class="stat-row">
-      <div class="sr-icon" style="background:rgba(168,139,250,.15)">💰</div>
+    <div class="sr"><div class="sr-icon" style="background:rgba(167,139,250,.15)">💰</div>
       <div class="sr-main"><div class="sr-name">Base Rent Share</div></div>
-      <div class="sr-right"><div class="sr-amt">${fmt(d.sharonBase)}</div></div>
+      <div class="sr-r"><div class="sr-amt">${fmt(d.sharonBase)}</div></div>
     </div>
-    <div class="stat-row">
-      <div class="sr-icon" style="background:rgba(248,113,113,.15)">➕</div>
+    <div class="sr"><div class="sr-icon" style="background:rgba(248,113,113,.15)">➕</div>
       <div class="sr-main"><div class="sr-name">You Covered (adds to her rent)</div></div>
-      <div class="sr-right"><div class="sr-amt" style="color:var(--red)">+${fmt(d.youCov)}</div></div>
+      <div class="sr-r"><div class="sr-amt" style="color:var(--red)">+${fmt(d.youCovered)}</div></div>
     </div>
-    <div class="stat-row">
-      <div class="sr-icon" style="background:rgba(74,222,128,.15)">➖</div>
+    <div class="sr"><div class="sr-icon" style="background:rgba(74,222,128,.15)">➖</div>
       <div class="sr-main"><div class="sr-name">Sharon Covered (credits your rent)</div></div>
-      <div class="sr-right"><div class="sr-amt" style="color:var(--green)">−${fmt(d.partCred)}</div></div>
+      <div class="sr-r"><div class="sr-amt" style="color:var(--green)">−${fmt(d.sheCovered)}</div></div>
     </div>
-    ${d.youOwe>0?`<div class="stat-row" style="background:var(--lt-green)">
+    ${d.youOwe>0?`<div class="sr" style="background:var(--lt-green)">
       <div class="sr-icon" style="background:rgba(74,222,128,.2)">✅</div>
       <div class="sr-main"><div class="sr-name" style="color:var(--green);font-weight:700">You Owe Sharon</div></div>
-      <div class="sr-right"><div class="sr-amt" style="color:var(--green)">${fmt(d.youOwe)}</div></div>
+      <div class="sr-r"><div class="sr-amt" style="color:var(--green)">${fmt(d.youOwe)}</div></div>
     </div>`:''}`;
-
-  // Settings
-  const map={
-    's-p1':s.p1,'s-p2':s.p2,'s-carry':s.carry||0,'s-rent':s.rent,'s-rp':s.rp||50,
-    's-ra':s.ra||0,'s-rb':s.rb||0,'s-va':s.va||0,'s-vb':s.vb||0,
-    's-wa':s.wa,'s-wb':s.wb,'s-vca':s.vca,'s-vcb':s.vcb,
-    's-ca':s.ca,'s-cb':s.cb,'s-ea':s.ea,'s-eb':s.eb,
-  };
-  Object.entries(map).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v||0;});
 }
 
 // ─── NAV ──────────────────────────────────────────────────
@@ -690,12 +668,13 @@ function nav(v){
   });
   document.getElementById('fab').classList.toggle('show',v==='log');
   document.getElementById('scroll').scrollTop=0;
-  render();
+  if(token) loadData();
 }
 
 function chMonth(d){
   mi=Math.max(0,Math.min(7,mi+d));
-  render();
+  document.getElementById('mname').textContent=MONTHS[mi];
+  if(token) loadData();
 }
 
 // ─── ADD EXPENSE ──────────────────────────────────────────
@@ -708,16 +687,14 @@ function openAdd(){
   document.getElementById('f-cc').value='';
   calcPrev();
   document.getElementById('add-overlay').classList.add('open');
-  setTimeout(()=>document.getElementById('f-desc').focus(),300);
+  setTimeout(()=>document.getElementById('f-desc').focus(),350);
 }
-function closeAdd(){document.getElementById('add-overlay').classList.remove('open');}
-function overlayTap(e){if(e.target===document.getElementById('add-overlay'))closeAdd();}
 function calcPrev(){
   const t=parseFloat(document.getElementById('f-total').value)||0;
   const s=parseFloat(document.getElementById('f-split').value)||100;
   document.getElementById('f-prev').textContent=fmt(t*(s/100));
 }
-function saveExpense(){
+async function saveExpense(){
   const date =document.getElementById('f-date').value;
   const desc =document.getElementById('f-desc').value.trim();
   const cat  =document.getElementById('f-cat').value;
@@ -726,57 +703,56 @@ function saveExpense(){
   const split=parseFloat(document.getElementById('f-split').value)/100;
   const notes=document.getElementById('f-notes').value;
   if(!desc||!total){toast('Enter description and amount','#ef4444');return;}
-  const log=getLog(mi);
-  log.push({id:Date.now(),date,desc,cat,cc,total,split,
-    share:+(total*split).toFixed(2),notes,pre:false});
-  setLog(mi,log);
-  closeAdd();
-  render();
-  toast('Saved ✓','#059669');
-}
-function delRow(idx){
-  if(!confirm('Delete this expense?'))return;
-  const log=getLog(mi);log.splice(idx,1);
-  setLog(mi,log);render();
-}
-
-// ─── SETTINGS ─────────────────────────────────────────────
-function saveSettings(){
-  const g=id=>parseFloat(document.getElementById(id).value)||0;
-  localStorage.setItem('et3_s_'+mi,JSON.stringify({
-    p1:g('s-p1'),p2:g('s-p2'),rent:g('s-rent'),rp:g('s-rp'),carry:g('s-carry'),
-    ra:g('s-ra'),rb:g('s-rb'),va:g('s-va'),vb:g('s-vb'),
-    wa:g('s-wa'),wb:g('s-wb'),vca:g('s-vca'),vcb:g('s-vcb'),
-    ca:g('s-ca'),cb:g('s-cb'),ea:g('s-ea'),eb:g('s-eb'),
-  }));
-  render();toast('Settings saved ✓','#059669');
+  const share=+(total*split).toFixed(2);
+  const mn=MONTHS[mi];
+  // Append to log: K=date, L=desc, M=cat, N=cc, O=total, P=split, Q=share, R=notes
+  const row=[[date,desc,cat,cc,total,split,share,notes]];
+  const range=`'${mn}'!K12:R12`;
+  closeOverlay('add-overlay');
+  toast('Saving...','#1d4ed8');
+  if(token){
+    const ok=await sheetsAppend(range,row);
+    if(ok){toast('Saved to Google Sheet ✓','#059669');loadData();}
+    else{toast('Save failed — check connection','#ef4444');}
+  } else {
+    toast('Not connected to Google Sheet','#ef4444');
+  }
 }
 
-// ─── EXPORT ───────────────────────────────────────────────
-function exportCSV(){
-  const log=getLog(mi);
-  const rows=[['Date','Description','Category','Credit Card','Total','Split %','Your Share','Notes']];
-  log.forEach(r=>rows.push([r.date,r.desc,r.cat,r.cc||'Sharon paid',r.total,
-    Math.round(r.split*100)+'%',r.share,r.notes||'']));
+// ─── EXPORT CSV ───────────────────────────────────────────
+async function exportCSV(){
+  if(!token){toast('Connect to Google Sheet first','#ef4444');return;}
+  const mn=MONTHS[mi];
+  const data=await sheetsGet(`'${mn}'!K12:R${ROWS.logEnd}`);
+  if(!data){toast('Could not load log data','#ef4444');return;}
+  const rows=[['Date','Description','Category','Credit Card','Total ($)','Split %','Your Share ($)','Notes']];
+  data.filter(r=>(r[1]||'').trim()).forEach(r=>rows.push(r));
   const csv=rows.map(r=>r.map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download=`expenses_${MONTHS[mi].replace(' ','_')}.csv`;
+  a.download=`expenses_${mn.replace(' ','_')}.csv`;
   a.click();
   toast('CSV exported ✓','#059669');
 }
 
-// ─── TOAST ────────────────────────────────────────────────
-function toast(msg,color='#1a1f36'){
+// ─── HELPERS ──────────────────────────────────────────────
+function closeOverlay(id){document.getElementById(id).classList.remove('open');}
+function bgTap(e,id){if(e.target===document.getElementById(id))closeOverlay(id);}
+let toastTimer;
+function toast(msg,color='#1e2440'){
   const t=document.getElementById('toast');
-  t.textContent=msg;t.style.background=color;
-  t.style.color=color==='#1a1f36'?'#fff':'#fff';
+  t.textContent=msg;t.style.background=color;t.style.color='#fff';
   t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
-  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(20px)';},2200);
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(20px)';},2400);
 }
 
 // ─── INIT ─────────────────────────────────────────────────
-initStorage();
+loadConfig();
+if(cfg){
+  document.getElementById('setup-banner').classList.add('hidden');
+  setTimeout(initAuth,800); // wait for GSI script to load
+}
 nav('dash');
 </script>
 </body>
