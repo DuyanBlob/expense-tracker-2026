@@ -155,6 +155,11 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .bigcard.teal::before  { background: var(--grad-teal); }
 .bigcard.green::before { background: var(--grad-green); }
 .bigcard.red::before   { background: var(--grad-red); }
+/* Ambient glow — bleeds below each card in its accent color */
+.bigcard        { box-shadow: 0 12px 56px -8px rgba(124,107,255,.18); }
+.bigcard.green  { box-shadow: 0 12px 56px -8px rgba(0,212,124,.22); }
+.bigcard.red    { box-shadow: 0 12px 56px -8px rgba(255,82,82,.22); }
+.bigcard.teal   { box-shadow: 0 12px 56px -8px rgba(0,224,184,.18); }
 .bc-label {
   font-size:10px; font-weight:700; letter-spacing:.1em;
   text-transform:uppercase; color:var(--text3); margin-bottom:8px;
@@ -176,6 +181,32 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   text-transform:uppercase; color:var(--text3); margin-bottom:6px;
 }
 .mc-val { font-family:var(--mono); font-size:19px; font-weight:500; color:var(--text); }
+
+/* ── DONUT CHART ── */
+.donut-card {
+  margin:10px 18px 0; background:var(--bg2); border:1px solid var(--line);
+  border-radius:var(--r); padding:22px 20px;
+  display:flex; align-items:center; gap:22px;
+}
+.donut-stats { flex:1; min-width:0; }
+.donut-stat-lbl { font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--text3); margin-bottom:6px; }
+.donut-stat-val { font-family:var(--mono); font-size:28px; font-weight:500; color:var(--text); letter-spacing:-1px; line-height:1; }
+.donut-stat-sub { font-size:11px; color:var(--text3); font-family:var(--mono); margin-top:6px; }
+.donut-cats { margin-top:14px; display:flex; flex-direction:column; gap:8px; }
+.donut-cat-row { display:flex; align-items:center; gap:8px; }
+.donut-cat-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.donut-cat-name { font-size:11px; color:var(--text2); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.donut-cat-val { font-family:var(--mono); font-size:11px; color:var(--text); }
+
+/* ── LOG DATE HEADERS ── */
+.log-date-hdr {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:9px 16px; border-bottom:1px solid var(--line);
+  background:var(--bg3);
+  position:sticky; top:0; z-index:2;
+}
+.log-date-lbl { font-size:9px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--text3); }
+.log-date-amt { font-family:var(--mono); font-size:11px; color:var(--text2); }
 
 /* ── LIST CARD ── */
 .lcard {
@@ -484,6 +515,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
       <div class="bc-sub" id="h-left-sub"></div>
     </div>
     <div class="slbl">Spending Breakdown</div>
+    <div class="donut-card" id="donut-card"></div>
     <div class="lcard" id="cat-card"></div>
     <div class="slbl">Credit Cards</div>
     <div class="lcard" id="cc-card"></div>
@@ -667,7 +699,7 @@ const ROWS = {
 };
 
 // ─── STATE ────────────────────────────────────────────────
-let mi=0, curView='dash', token=null, cfg=null, loading=false;
+let mi=0, curView='dash', token=null, cfg=null, loading=false, slideDir=0;
 const cache={}, cacheTs={};
 const CACHE_TTL=60000;
 function isCached(m){return cache[m]&&(Date.now()-cacheTs[m])<CACHE_TTL;}
@@ -837,11 +869,83 @@ async function loadData(){
   renderAll(d);
 }
 
-function renderAll(d){ renderDash(d); renderLog(d.logRows||[]); renderInvest(d); renderSharon(d); }
+function renderAll(d){ renderDash(d); renderLog(d.logRows||[]); renderInvest(d); renderSharon(d); animateSlide(); }
+
+function animateSlide(){
+  if(!slideDir) return;
+  const page=document.querySelector('.page.active');
+  if(!page) return;
+  const x=slideDir>0?'30px':'-30px';
+  page.animate(
+    [{opacity:0,transform:`translateX(${x})`},{opacity:1,transform:'translateX(0)'}],
+    {duration:280,easing:'cubic-bezier(.25,.46,.45,.94)',fill:'both'}
+  );
+  slideDir=0;
+}
 
 // ─── RENDER ───────────────────────────────────────────────
 const fmt=n=>'$'+(Math.abs(+n||0)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const pct=n=>(((+n||0)*100).toFixed(1))+'%';
+
+function renderDonut(d){
+  const el=document.getElementById('donut-card');
+  if(!el) return;
+  const segs=[];
+  CATS.forEach((c,i)=>{ if(d.catShares[i]>0) segs.push({label:c,val:d.catShares[i],col:CAT_COL[c]}); });
+  if(d.adjRent>0)  segs.push({label:'Adj. Rent',val:d.adjRent,col:'#7c6bff'});
+  if(d.invested>0) segs.push({label:'Invested', val:d.invested,col:'#00e0b8'});
+  const total=segs.reduce((a,s)=>a+s.val,0);
+  if(!total){ el.innerHTML=''; return; }
+
+  const R=56,CX=72,CY=72,SW=14,circ=2*Math.PI*R;
+  let cum=0;
+  const arcs=segs.map(s=>{
+    const pf=s.val/total;
+    const arc=Math.max(0,pf*circ-2.5);
+    const off=-(cum*circ);
+    cum+=pf;
+    return `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="${s.col}" stroke-width="${SW}" stroke-dasharray="${arc} ${circ}" stroke-dashoffset="${off}" stroke-linecap="round" transform="rotate(-90 ${CX} ${CY})"/>`;
+  });
+
+  const incPct=d.income>0?((total/d.income)*100).toFixed(0)+'%':'';
+  const topSegs=segs.slice(0,3);
+
+  el.innerHTML=`
+    <svg width="144" height="144" viewBox="0 0 144 144" style="flex-shrink:0">
+      <circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="var(--line)" stroke-width="${SW}"/>
+      ${arcs.join('')}
+      <text x="${CX}" y="${CY-9}" text-anchor="middle" fill="var(--text3)" font-size="8.5" font-family="Syne,sans-serif" font-weight="700" letter-spacing="1.2">SPENT</text>
+      <text x="${CX}" y="${CY+9}" text-anchor="middle" fill="var(--text)" font-size="16" font-family="DM Mono,monospace" font-weight="500">${fmt(total)}</text>
+      ${incPct?`<text x="${CX}" y="${CY+24}" text-anchor="middle" fill="var(--text3)" font-size="9" font-family="DM Mono,monospace">${incPct} of income</text>`:''}
+    </svg>
+    <div class="donut-stats">
+      <div class="donut-stat-lbl">Total Spent</div>
+      <div class="donut-stat-val">${fmt(total)}</div>
+      ${d.income>0?`<div class="donut-stat-sub">${incPct} of ${fmt(d.income)}</div>`:''}
+      <div class="donut-cats">
+        ${topSegs.map(s=>`<div class="donut-cat-row">
+          <div class="donut-cat-dot" style="background:${s.col}"></div>
+          <div class="donut-cat-name">${s.label}</div>
+          <div class="donut-cat-val">${fmt(s.val)}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function formatLogDate(ds){
+  if(!ds) return '';
+  try{
+    const d=new Date(ds.includes('-')?ds+'T00:00:00':ds);
+    if(isNaN(d)) return ds;
+    const now=new Date();
+    const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    const yest=new Date(today); yest.setDate(today.getDate()-1);
+    const dd=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+    if(dd.getTime()===today.getTime()) return 'Today';
+    if(dd.getTime()===yest.getTime()) return 'Yesterday';
+    return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  }catch(e){return ds;}
+}
 
 function renderDash(d){
   document.getElementById('h-income').textContent=fmt(d.income);
@@ -884,6 +988,7 @@ function renderDash(d){
     <div class="cr"><div class="camt green">${fmt(d.leftover)}</div><div class="cpct" style="color:var(--green);opacity:.7">${pct(d.leftoverPct)}</div></div>
   </div>`;
   document.getElementById('cat-card').innerHTML=html;
+  renderDonut(d);
 
   // Credit cards — unique icon + brand color per card
   const usedCC=CCS.filter((_,i)=>d.ccAmts[i]>0);
@@ -906,30 +1011,47 @@ function renderDash(d){
 }
 
 function renderLog(rows){
-  document.getElementById('log-card').innerHTML=rows.length
-    ? rows.map(r=>{
-        const col=CAT_COL[r.cat]||'#6366f1';
-        const ico=CAT_ICON[r.cat]||'📦';
-        const ccCol=CC_COL[r.cc]||'#6b7280';
-        const ccIco=CC_ICON[r.cc]||'💳';
-        return`<div class="logrow${r.pre?' pre':''}">
-          <div class="log-icon" style="background:${col}20">${ico}</div>
-          <div class="log-m">
-            <div class="log-desc">${r.desc}</div>
-            <div class="log-chips">
-              <span class="chip chip-b">${ico} ${r.cat}</span>
-              ${r.cc
-                ? `<span class="cc-chip" style="background:${ccCol}18;color:${ccCol}">${ccIco} ${r.cc}</span>`
-                : r.split<1 ? '<span class="chip chip-g">👤 Sharon paid</span>' : ''}
-            </div>
+  const el=document.getElementById('log-card');
+  if(!rows.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No expenses logged</div><div class="empty-sub">Tap + to add your first expense</div></div>`;
+    return;
+  }
+  // Group rows by date, preserving order
+  const groups=new Map();
+  rows.forEach(r=>{
+    const key=r.date||'';
+    if(!groups.has(key)) groups.set(key,[]);
+    groups.get(key).push(r);
+  });
+  let html='';
+  groups.forEach((dayRows,dateKey)=>{
+    const dayTotal=dayRows.reduce((a,r)=>a+r.share,0);
+    const label=formatLogDate(dateKey);
+    if(label) html+=`<div class="log-date-hdr"><span class="log-date-lbl">${label}</span><span class="log-date-amt">${fmt(dayTotal)}</span></div>`;
+    dayRows.forEach(r=>{
+      const col=CAT_COL[r.cat]||'#6366f1';
+      const ico=CAT_ICON[r.cat]||'📦';
+      const ccCol=CC_COL[r.cc]||'#6b7280';
+      const ccIco=CC_ICON[r.cc]||'💳';
+      html+=`<div class="logrow${r.pre?' pre':''}">
+        <div class="log-icon" style="background:${col}20">${ico}</div>
+        <div class="log-m">
+          <div class="log-desc">${r.desc}</div>
+          <div class="log-chips">
+            <span class="chip chip-b">${ico} ${r.cat}</span>
+            ${r.cc
+              ?`<span class="cc-chip" style="background:${ccCol}18;color:${ccCol}">${ccIco} ${r.cc}</span>`
+              :r.split<1?'<span class="chip chip-g">👤 Sharon paid</span>':''}
           </div>
-          <div class="log-r">
-            <div class="log-total">${fmt(r.total)}</div>
-            <div class="log-share">You: ${fmt(r.share)}</div>
-          </div>
-        </div>`;
-      }).join('')
-    : `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No expenses logged</div><div class="empty-sub">Tap + to add your first expense</div></div>`;
+        </div>
+        <div class="log-r">
+          <div class="log-total">${fmt(r.total)}</div>
+          <div class="log-share">You: ${fmt(r.share)}</div>
+        </div>
+      </div>`;
+    });
+  });
+  el.innerHTML=html;
 }
 
 function renderInvest(d){
@@ -991,8 +1113,10 @@ function nav(v){
 }
 function chMonth(d){
   mi=Math.max(0,Math.min(7,mi+d));
+  slideDir=d;
   document.getElementById('mname').textContent=MONTHS[mi];
   if(token){invalidate(MONTHS[mi]);loadData();}
+  else animateSlide();
 }
 
 // ─── SWIPE TO CHANGE MONTH ────────────────────────────────
