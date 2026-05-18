@@ -816,9 +816,12 @@ async function loadData(){
   const youCovered =g(SUM,13,0); const sharonTotal=g(SUM,14,0);
   const youOwe     =g(SUM,15,0);
 
+  // Range J12:R — J(0) is a spreadsheet row label, so real data starts at col 1:
+  // r[1]=K=date, r[2]=L=description, r[3]=M=category, r[4]=N=CC card,
+  // r[5]=O=total, r[6]=P=split, r[7]=Q=share, r[8]=R=notes
   const LOG=(vr[5].values||[]).filter(r=>(r[2]||'').toString().trim());
   const logRows=LOG.map((r,i)=>({
-    idx:i, date:r[0]||'', desc:r[1]||'', cat:r[2]||'', cc:r[3]||'',
+    idx:i, date:r[1]||'', desc:r[2]||'', cat:r[3]||'', cc:r[4]||'',
     total:(()=>{ const v=(r[5]||'').toString().trim(); return parseFloat(v.replace(/[$,"\s]/g,''))||0; })(),
     split:(()=>{ const v=(r[6]||'').toString().trim(); if(!v) return 1; if(v.endsWith('%')) return parseFloat(v)/100||1; const n=parseFloat(v)||1; return n>1?n/100:n; })(),
     share:(()=>{ const v=(r[7]||'').toString().trim(); return parseFloat(v.replace(/[$,"\s]/g,''))||0; })(),
