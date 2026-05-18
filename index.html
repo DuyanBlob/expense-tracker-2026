@@ -5,33 +5,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="theme-color" content="#09090e">
+<meta name="theme-color" content="#07070f">
 <title>Expense Tracker 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:   #09090e;
-  --bg1:  #101018;
-  --bg2:  #14141e;
-  --bg3:  #1a1a28;
-  --bg4:  #202030;
-  --line: #222236;
-  --line2:#2c2c48;
-  --text: #f0f0f8;
-  --text2:#6a6a95;
-  --text3:#3a3a5a;
-  --accent:#5b6eff;
-  --accent2:#3d52ff;
-  --teal:  #00d4aa;
-  --green: #00c97a;
-  --red:   #ff5c5c;
-  --amber: #ffb140;
-  --purple:#9b7fff;
+  /* ── Deep purple-navy dark ── */
+  --bg:    #07070f;
+  --bg1:   #0b0b16;
+  --bg2:   #0f0f1d;
+  --bg3:   #141425;
+  --bg4:   #191930;
+  --line:  #1c1c32;
+  --line2: #252540;
+  /* ── Text ── */
+  --text:  #e2e2f2;
+  --text2: #52527e;
+  --text3: #2e2e50;
+  /* ── Accent ── */
+  --accent:  #7c6bff;
+  --accent2: #5a4aff;
+  --teal:    #00e0b8;
+  --green:   #00d47c;
+  --red:     #ff5252;
+  --amber:   #ffb830;
+  --purple:  #b39dff;
+  --cyan:    #22d3ee;
+  /* ── Gradients ── */
+  --grad-accent: linear-gradient(135deg,#7c6bff 0%,#b39dff 100%);
+  --grad-teal:   linear-gradient(135deg,#00e0b8 0%,#22d3ee 100%);
+  --grad-green:  linear-gradient(135deg,#00d47c 0%,#00e0b8 100%);
+  --grad-red:    linear-gradient(135deg,#ff5252 0%,#ff8a6b 100%);
   --mono: 'DM Mono', monospace;
   --sans: 'Syne', sans-serif;
-  --r:  14px;
-  --r-sm:10px;
+  --r:    14px;
+  --r-sm: 10px;
 }
 * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
 html,body { height:100%; overflow:hidden; }
@@ -39,7 +48,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 
 /* ── HEADER ── */
 .hdr {
-  background: rgba(16,16,24,.92);
+  background: rgba(11,11,22,.94);
   backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
   border-bottom: 1px solid var(--line);
   height: calc(60px + env(safe-area-inset-top,0));
@@ -50,10 +59,10 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .hdr-brand { display:flex; align-items:center; gap:10px; }
 .hdr-logo {
   width:32px; height:32px; border-radius:9px;
-  background: linear-gradient(135deg,var(--accent) 0%,var(--purple) 100%);
+  background: var(--grad-accent);
   display:flex; align-items:center; justify-content:center;
   font-size:13px; font-weight:800; color:#fff; letter-spacing:-.5px;
-  box-shadow: 0 2px 12px rgba(91,110,255,.4);
+  box-shadow: 0 2px 14px rgba(124,107,255,.45);
 }
 .hdr-name { font-size:14px; font-weight:700; color:var(--text); }
 .hdr-name span { color:var(--text2); font-weight:500; font-size:12px; margin-left:4px; }
@@ -95,7 +104,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 /* ── BOTTOM NAV ── */
 .bnav {
   position:fixed; bottom:0; left:0; right:0; z-index:100;
-  background: rgba(16,16,24,.95);
+  background: rgba(11,11,22,.96);
   backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);
   border-top:1px solid var(--line);
   display:flex; padding-bottom:env(safe-area-inset-bottom,0);
@@ -111,7 +120,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .bni-pip {
   position:absolute; top:6px; left:50%; transform:translateX(-50%) scaleX(0);
   width:24px; height:3px; border-radius:2px;
-  background:var(--accent);
+  background: var(--grad-accent);
   transition: transform .3s cubic-bezier(.34,1.56,.64,1);
 }
 .bni.active .bni-pip { transform:translateX(-50%) scaleX(1); }
@@ -141,11 +150,11 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 }
 .bigcard::before {
   content:''; position:absolute; top:0; left:0; right:0; height:3px;
-  background: linear-gradient(90deg,var(--accent),var(--purple));
+  background: var(--grad-accent);
 }
-.bigcard.teal::before  { background:linear-gradient(90deg,var(--teal),#00b4d8); }
-.bigcard.green::before { background:linear-gradient(90deg,var(--green),var(--teal)); }
-.bigcard.red::before   { background:linear-gradient(90deg,var(--red),#ff8c69); }
+.bigcard.teal::before  { background: var(--grad-teal); }
+.bigcard.green::before { background: var(--grad-green); }
+.bigcard.red::before   { background: var(--grad-red); }
 .bc-label {
   font-size:10px; font-weight:700; letter-spacing:.1em;
   text-transform:uppercase; color:var(--text3); margin-bottom:8px;
@@ -188,9 +197,9 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 }
 .crow:last-child { border-bottom:none; }
 .crow:active { background:var(--bg3); }
-.crow.accent-row { background:rgba(91,110,255,.05); }
-.crow.teal-row   { background:rgba(0,212,170,.05); }
-.crow.green-row  { background:rgba(0,201,122,.07); }
+.crow.accent-row { background:rgba(124,107,255,.05); }
+.crow.teal-row   { background:rgba(0,224,184,.05); }
+.crow.green-row  { background:rgba(0,212,124,.07); }
 .ci {
   width:36px; height:36px; border-radius:10px;
   display:flex; align-items:center; justify-content:center;
@@ -217,10 +226,10 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .fab {
   position:fixed; bottom:calc(86px + env(safe-area-inset-bottom,0)); right:20px;
   width:56px; height:56px; border-radius:18px;
-  background: linear-gradient(135deg,var(--accent) 0%,#7c6bff 100%);
+  background: var(--grad-accent);
   border:none; color:#fff; font-size:26px; display:none; align-items:center;
   justify-content:center; cursor:pointer; z-index:99;
-  box-shadow: 0 6px 28px rgba(91,110,255,.55);
+  box-shadow: 0 6px 28px rgba(124,107,255,.55);
   transition:transform .12s;
 }
 .fab:active { transform:scale(.9); }
@@ -238,7 +247,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .log-icon {
   width:42px; height:42px; border-radius:12px;
   display:flex; align-items:center; justify-content:center;
-  font-size:18px; flex-shrink:0;
+  font-size:20px; flex-shrink:0;
 }
 .log-m { flex:1; min-width:0; }
 .log-desc { font-size:14px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -246,10 +255,10 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .chip {
   font-family:var(--mono); font-size:9px; font-weight:500;
   border-radius:5px; padding:3px 7px; letter-spacing:.03em;
+  display:inline-flex; align-items:center; gap:3px;
 }
-.chip-b { background:rgba(91,110,255,.12); color:var(--accent); }
-.chip-p { background:rgba(155,127,255,.12); color:var(--purple); }
-.chip-g { background:rgba(0,201,122,.1); color:var(--green); }
+.chip-b { background:rgba(124,107,255,.12); color:var(--accent); }
+.chip-g { background:rgba(0,212,124,.1); color:var(--green); }
 .log-r { text-align:right; flex-shrink:0; }
 .log-total { font-family:var(--mono); font-size:15px; font-weight:500; color:var(--text); }
 .log-share { font-family:var(--mono); font-size:10px; color:var(--accent); margin-top:3px; }
@@ -258,7 +267,14 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   cursor:pointer; padding:8px; border-radius:8px; flex-shrink:0;
   transition:color .15s, background .15s;
 }
-.del:active { color:var(--red); background:rgba(255,92,92,.1); }
+.del:active { color:var(--red); background:rgba(255,82,82,.1); }
+
+/* ── CC CHIP ── */
+.cc-chip {
+  display:inline-flex; align-items:center; gap:4px;
+  font-family:var(--mono); font-size:9px; font-weight:600;
+  border-radius:5px; padding:3px 7px; letter-spacing:.03em;
+}
 
 /* ── ALLY GRID ── */
 .ally-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:10px 18px 0; }
@@ -269,7 +285,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 }
 .abkt::before {
   content:''; position:absolute; top:0; left:0; right:0; height:2px;
-  background:linear-gradient(90deg,var(--teal),#00b4d8);
+  background: var(--grad-teal);
 }
 .abkt-name {
   font-size:10px; font-weight:700; letter-spacing:.08em;
@@ -280,14 +296,14 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 
 /* ── SHARON ── */
 .sharon-hdr {
-  margin:14px 18px 0; border:1px solid rgba(155,127,255,.22);
+  margin:14px 18px 0; border:1px solid rgba(179,157,255,.2);
   border-radius:var(--r); padding:20px 22px;
-  background:linear-gradient(135deg,rgba(155,127,255,.08) 0%,rgba(91,110,255,.04) 100%);
+  background:linear-gradient(135deg,rgba(124,107,255,.08) 0%,rgba(179,157,255,.04) 100%);
   position:relative; overflow:hidden;
 }
 .sharon-hdr::before {
   content:''; position:absolute; top:0; left:0; right:0; height:3px;
-  background:linear-gradient(90deg,var(--purple),var(--accent));
+  background: var(--grad-accent);
 }
 .sh-label { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin-bottom:8px; }
 .sh-val { font-family:var(--mono); font-size:36px; font-weight:500; color:var(--purple); letter-spacing:-1.5px; }
@@ -297,8 +313,6 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .sgrp { margin:10px 18px 0; border:1px solid var(--line); border-radius:var(--r); overflow:hidden; background:var(--bg2); }
 .sgrp-hdr { padding:13px 16px; border-bottom:1px solid var(--line); font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); }
 .sgrp-body { padding:16px; display:flex; flex-direction:column; gap:14px; }
-.fgrid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.fg { margin:0; }
 .fg label { display:block; font-size:9px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-bottom:6px; }
 .fg input, .fg select {
   width:100%; background:var(--bg3); border:1.5px solid var(--line2);
@@ -309,14 +323,14 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .fg input:focus, .fg select:focus { outline:none; border-color:var(--accent); background:var(--bg4); }
 .sbtn {
   display:block; width:calc(100% - 36px); margin:12px 18px 0;
-  background:linear-gradient(135deg,var(--accent) 0%,#7c6bff 100%);
+  background: var(--grad-accent);
   color:#fff; border:none; border-radius:12px;
   padding:16px; font-family:var(--sans); font-size:15px; font-weight:700;
   cursor:pointer; letter-spacing:.02em;
-  box-shadow:0 4px 20px rgba(91,110,255,.35);
+  box-shadow:0 4px 20px rgba(124,107,255,.35);
   transition:transform .12s, box-shadow .12s;
 }
-.sbtn:active { transform:scale(.97); box-shadow:0 2px 10px rgba(91,110,255,.2); }
+.sbtn:active { transform:scale(.97); box-shadow:0 2px 10px rgba(124,107,255,.2); }
 .sbtn.ghost {
   background:transparent; color:var(--text2);
   border:1.5px solid var(--line2); box-shadow:none; margin-top:10px;
@@ -325,9 +339,9 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 
 /* ── BANNER ── */
 .banner {
-  margin:14px 18px 0; border:1px solid rgba(255,177,64,.22);
+  margin:14px 18px 0; border:1px solid rgba(255,184,48,.2);
   border-radius:var(--r-sm); padding:14px 16px;
-  background:rgba(255,177,64,.06);
+  background:rgba(255,184,48,.05);
   display:flex; align-items:center; justify-content:space-between; gap:12px;
 }
 .banner.hidden { display:none; }
@@ -342,8 +356,8 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 /* ── MODAL SHEET ── */
 .overlay {
   position:fixed; inset:0;
-  background:rgba(0,0,0,.75);
-  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  background:rgba(0,0,0,.78);
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
   z-index:200; display:flex; align-items:flex-end;
   opacity:0; pointer-events:none; transition:opacity .22s;
 }
@@ -382,27 +396,26 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .mfg input:focus, .mfg select:focus { outline:none; border-color:var(--accent); background:var(--bg4); }
 .fgrid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
 .prev-box {
-  background:linear-gradient(135deg,rgba(91,110,255,.12) 0%,rgba(124,107,255,.05) 100%);
-  border:1.5px solid rgba(91,110,255,.22); border-radius:12px;
+  background:linear-gradient(135deg,rgba(124,107,255,.12) 0%,rgba(179,157,255,.05) 100%);
+  border:1.5px solid rgba(124,107,255,.22); border-radius:12px;
   padding:16px; display:flex; align-items:center;
   justify-content:space-between; margin-bottom:16px;
 }
 .prev-lbl { font-size:11px; font-weight:700; color:var(--accent); letter-spacing:.06em; }
 .prev-val { font-family:var(--mono); font-size:26px; font-weight:500; color:var(--accent); }
 .msave {
-  width:100%;
-  background:linear-gradient(135deg,var(--accent) 0%,#7c6bff 100%);
+  width:100%; background: var(--grad-accent);
   color:#fff; border:none; border-radius:12px;
   padding:17px; font-family:var(--sans); font-size:16px; font-weight:700;
   cursor:pointer;
-  box-shadow:0 4px 20px rgba(91,110,255,.35);
+  box-shadow:0 4px 20px rgba(124,107,255,.35);
   transition:transform .12s, box-shadow .12s;
 }
-.msave:active { transform:scale(.97); box-shadow:0 2px 10px rgba(91,110,255,.2); }
+.msave:active { transform:scale(.97); box-shadow:0 2px 10px rgba(124,107,255,.2); }
 
 /* ── EMPTY ── */
 .empty { padding:52px 24px; text-align:center; }
-.empty-icon { font-size:40px; opacity:.22; margin-bottom:12px; }
+.empty-icon { font-size:40px; opacity:.2; margin-bottom:12px; }
 .empty-text { font-size:14px; color:var(--text2); font-weight:600; }
 .empty-sub { font-size:12px; color:var(--text3); margin-top:5px; }
 
@@ -414,12 +427,10 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   border:1px solid var(--line2); color:var(--text);
   border-radius:24px; padding:11px 20px;
   font-family:var(--mono); font-size:12px;
-  box-shadow:0 8px 32px rgba(0,0,0,.5);
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
   white-space:nowrap; pointer-events:none;
   opacity:0; transition:opacity .2s, transform .2s;
 }
-
-/* ── BOTTOM PADDING ── */
 .pb { height:20px; }
 </style>
 </head>
@@ -494,7 +505,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
     <div class="ally-grid" id="ally-grid"></div>
     <div class="lcard" style="margin-top:10px">
       <div class="crow">
-        <div class="ci" style="background:rgba(0,212,170,.12)">🏦</div>
+        <div class="ci" style="background:rgba(0,224,184,.1)">🏦</div>
         <div class="cm"><div class="cn teal">Total Ally Balance</div></div>
         <div class="cr"><div class="camt teal" id="ally-total">—</div></div>
       </div>
@@ -589,12 +600,59 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 // ─── CONSTANTS ────────────────────────────────────────────
-const MONTHS  = ['May 2026','Jun 2026','Jul 2026','Aug 2026','Sep 2026','Oct 2026','Nov 2026','Dec 2026'];
-const MDATES  = ['2026-05-01','2026-06-01','2026-07-01','2026-08-01','2026-09-01','2026-10-01','2026-11-01','2026-12-01'];
-const CATS    = ['Groceries','Utilities','Gas / Transport','Dining / Takeout','Entertainment','Health','Shopping','Subscriptions','Cash','Personal / Misc','Other'];
-const CCS     = ['CFF','CFU','CSP','Discover','Citi','Capital One','WF','Amazon Card','Robinhood','Cash','Other'];
-const CAT_ICON= {'Groceries':'🛒','Utilities':'💡','Gas / Transport':'⛽','Dining / Takeout':'🍕','Entertainment':'🎮','Health':'💊','Shopping':'🛍','Subscriptions':'📱','Cash':'💵','Personal / Misc':'👤','Other':'📦'};
-const CAT_COL = {'Groceries':'#22c55e','Utilities':'#f59e0b','Gas / Transport':'#3b82f6','Dining / Takeout':'#f97316','Entertainment':'#a855f7','Health':'#ec4899','Shopping':'#14b8a6','Subscriptions':'#6366f1','Cash':'#64748b','Personal / Misc':'#78716c','Other':'#94a3b8'};
+const MONTHS = ['May 2026','Jun 2026','Jul 2026','Aug 2026','Sep 2026','Oct 2026','Nov 2026','Dec 2026'];
+const MDATES = ['2026-05-01','2026-06-01','2026-07-01','2026-08-01','2026-09-01','2026-10-01','2026-11-01','2026-12-01'];
+const CATS   = ['Groceries','Utilities','Gas / Transport','Dining / Takeout','Entertainment','Health','Shopping','Subscriptions','Cash','Personal / Misc','Other'];
+const CCS    = ['CFF','CFU','CSP','Discover','Citi','Capital One','WF','Amazon Card','Robinhood','Cash','Other'];
+
+// Category icons — distinct emoji per category
+const CAT_ICON = {
+  'Groceries':       '🛒',
+  'Utilities':       '⚡',
+  'Gas / Transport': '🚗',
+  'Dining / Takeout':'🍔',
+  'Entertainment':   '🎬',
+  'Health':          '💊',
+  'Shopping':        '🛍️',
+  'Subscriptions':   '📺',
+  'Cash':            '💵',
+  'Personal / Misc': '🧴',
+  'Other':           '📦',
+};
+const CAT_COL = {
+  'Groceries':'#22c55e','Utilities':'#eab308','Gas / Transport':'#3b82f6',
+  'Dining / Takeout':'#f97316','Entertainment':'#a855f7','Health':'#ec4899',
+  'Shopping':'#14b8a6','Subscriptions':'#6366f1','Cash':'#64748b',
+  'Personal / Misc':'#78716c','Other':'#94a3b8',
+};
+
+// Credit card icons — unique emoji + brand color per card
+const CC_ICON = {
+  'CFF':         '⚡',   // Chase Freedom Flex  — lightning
+  'CFU':         '🔄',   // Chase Freedom Unlimited — refresh/unlimited
+  'CSP':         '💎',   // Chase Sapphire Preferred — sapphire gem
+  'Discover':    '🔶',   // Discover — orange diamond
+  'Citi':        '🏙️',  // Citi — city skyline
+  'Capital One': '🦅',   // Capital One — eagle
+  'WF':          '🐎',   // Wells Fargo — horse/stagecoach
+  'Amazon Card': '📦',   // Amazon — package
+  'Robinhood':   '🐦',   // Robinhood — bird
+  'Cash':        '💵',   // Cash — dollar bill
+  'Other':       '💳',   // Other — generic card
+};
+const CC_COL = {
+  'CFF':         '#2563eb',  // Chase blue
+  'CFU':         '#1d4ed8',  // Chase blue deep
+  'CSP':         '#0891b2',  // Sapphire teal
+  'Discover':    '#ea580c',  // Discover orange
+  'Citi':        '#0284c7',  // Citi blue
+  'Capital One': '#dc2626',  // Capital One red
+  'WF':          '#b45309',  // Wells Fargo gold
+  'Amazon Card': '#c2410c',  // Amazon orange-red
+  'Robinhood':   '#16a34a',  // Robinhood green
+  'Cash':        '#15803d',  // Cash green
+  'Other':       '#6b7280',  // Gray
+};
 
 // EXACT ROW MAPPING (1-indexed, matching spreadsheet)
 const ROWS = {
@@ -686,7 +744,6 @@ async function sheetsAppend(range,values){
   const r=await fetch(url,{method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values})});
   return r.ok;
 }
-
 async function findNextEmptyRow(mn){
   const data=await sheetsGet(`'${mn}'!L12:L131`);
   if(!data) return 12;
@@ -705,7 +762,6 @@ async function loadData(){
   if(!token||!cfg||loading) return;
   loading=true;
   const mn=MONTHS[mi];
-
   const ranges=[
     `'${mn}'!D6:H9`,
     `'${mn}'!D12:E26`,
@@ -714,7 +770,6 @@ async function loadData(){
     `'${mn}'!D56:D71`,
     `'${mn}'!J12:R${ROWS.logEnd}`,
   ];
-
   const vr=await sheetsBatchGet(ranges);
   if(!vr){ loading=false; toast('Could not load data — check connection','#ef4444'); return; }
 
@@ -731,27 +786,17 @@ async function loadData(){
     const n=parseFloat(raw.replace(/[$,"\s]/g,''))||0;
     return n>1 ? n/100 : n;
   };
-  const s=(a,r,c)=>((a[r]||[])[c]||'').toString().trim();
 
   const SET=vr[0].values||[];
-  const pay1   =g(SET,0,0);
-  const pay2   =g(SET,0,4);
-  const rent   =g(SET,1,0);
-  const rentPct=g(SET,1,4);
-  const income =g(SET,2,4);
-  const carry  =g(SET,3,0);
+  const pay1   =g(SET,0,0); const pay2   =g(SET,0,4);
+  const income =g(SET,2,4); const carry  =g(SET,3,0);
 
   const CAT=vr[1].values||[];
-  const catShares=CATS.map((_,i)=>g(CAT,i,0));
-  const catPcts  =CATS.map((_,i)=>gp(CAT,i,1));
-  const adjRent  =g(CAT,11,0);
-  const adjRentPct=gp(CAT,11,1);
-  const invested =g(CAT,12,0);
-  const investPct=gp(CAT,12,1);
-  const totalOut =g(CAT,13,0);
-  const totalOutPct=gp(CAT,13,1);
-  const leftover =g(CAT,14,0);
-  const leftoverPct=gp(CAT,14,1);
+  const catShares  =CATS.map((_,i)=>g(CAT,i,0));
+  const catPcts    =CATS.map((_,i)=>gp(CAT,i,1));
+  const adjRent    =g(CAT,11,0); const adjRentPct =gp(CAT,11,1);
+  const invested   =g(CAT,12,0); const investPct  =gp(CAT,12,1);
+  const leftover   =g(CAT,14,0); const leftoverPct=gp(CAT,14,1);
 
   const CC=vr[2].values||[];
   const ccAmts=CCS.map((_,i)=>g(CC,i,0));
@@ -767,37 +812,29 @@ async function loadData(){
   const allyTotal=g(INV,8,2);
 
   const SUM=vr[4].values||[];
-  const sharonBase =g(SUM,11,0);
-  const sheCovered =g(SUM,12,0);
-  const youCovered =g(SUM,13,0);
-  const sharonTotal=g(SUM,14,0);
+  const sharonBase =g(SUM,11,0); const sheCovered =g(SUM,12,0);
+  const youCovered =g(SUM,13,0); const sharonTotal=g(SUM,14,0);
   const youOwe     =g(SUM,15,0);
 
   const LOG=(vr[5].values||[]).filter(r=>(r[2]||'').toString().trim());
   const logRows=LOG.map((r,i)=>({
-    idx:i,date:r[0]||'',desc:r[1]||'',cat:r[2]||'',cc:r[3]||'',
+    idx:i, date:r[0]||'', desc:r[1]||'', cat:r[2]||'', cc:r[3]||'',
     total:(()=>{ const v=(r[5]||'').toString().trim(); return parseFloat(v.replace(/[$,"\s]/g,''))||0; })(),
     split:(()=>{ const v=(r[6]||'').toString().trim(); if(!v) return 1; if(v.endsWith('%')) return parseFloat(v)/100||1; const n=parseFloat(v)||1; return n>1?n/100:n; })(),
     share:(()=>{ const v=(r[7]||'').toString().trim(); return parseFloat(v.replace(/[$,"\s]/g,''))||0; })(),
-    notes:r[8]||'',
-    pre: i < 9
+    notes:r[8]||'', pre: i < 9
   }));
 
   loading=false;
   const d={income,pay1,pay2,carry,adjRent,adjRentPct,ccTotal,leftover,leftoverPct,
-    totalOut,totalOutPct,invested,investPct,catShares,catPcts,ccAmts,logRows,
+    invested,investPct,catShares,catPcts,ccAmts,logRows,
     robAdd,robBal,vanAdd,vanBal,wantsAdd,wantsBal,vacAdd,vacBal,carAdd,carBal,emergAdd,emergBal,allyTotal,
     sharonBase,sheCovered,youCovered,sharonTotal,youOwe};
   cache[mn]=d; cacheTs[mn]=Date.now();
   renderAll(d);
 }
 
-function renderAll(d){
-  renderDash(d);
-  renderLog(d.logRows||[]);
-  renderInvest(d);
-  renderSharon(d);
-}
+function renderAll(d){ renderDash(d); renderLog(d.logRows||[]); renderInvest(d); renderSharon(d); }
 
 // ─── RENDER ───────────────────────────────────────────────
 const fmt=n=>'$'+(Math.abs(+n||0)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -813,86 +850,99 @@ function renderDash(d){
   document.getElementById('h-left-sub').textContent=pct(d.leftoverPct)+' of income';
   const lc=document.getElementById('h-left-card');
   lc.className='bigcard '+(d.leftover<0?'red':'green');
-  const lv=document.getElementById('h-left');
-  lv.className='bc-val '+(d.leftover<0?'red':'green');
+  document.getElementById('h-left').className='bc-val '+(d.leftover<0?'red':'green');
 
+  // Spending breakdown
   const maxS=Math.max(...d.catShares,d.adjRent,1);
   let html=CATS.filter((_,i)=>d.catShares[i]>0).map((_,i)=>{
     const c=CATS[i],sh=d.catShares[i],col=CAT_COL[c]||'#6366f1',bw=Math.round((sh/maxS)*100);
     return`<div class="crow">
-      <div class="ci" style="background:${col}22">${CAT_ICON[c]}</div>
+      <div class="ci" style="background:${col}22">${CAT_ICON[c]||'📦'}</div>
       <div class="cm"><div class="cn">${c}</div>
-        <div class="cbar"><div class="cbfill" style="width:${bw}%;background:${col}"></div></div>
-      </div>
-      <div class="cr"><div class="camt">${fmt(sh)}</div><div class="cpct">${pct(d.catPcts[i])}</div></div></div>`;
+        <div class="cbar"><div class="cbfill" style="width:${bw}%;background:${col}"></div></div></div>
+      <div class="cr"><div class="camt">${fmt(sh)}</div><div class="cpct">${pct(d.catPcts[i])}</div></div>
+    </div>`;
   }).join('');
   html+=`<div class="crow">
-    <div class="ci" style="background:rgba(91,110,255,.12)">🏠</div>
+    <div class="ci" style="background:rgba(124,107,255,.12)">🏠</div>
     <div class="cm"><div class="cn accent" style="font-weight:700">Adjusted Rent</div>
       <div class="cbar"><div class="cbfill" style="width:${Math.round((d.adjRent/maxS)*100)}%;background:var(--accent)"></div></div></div>
     <div class="cr"><div class="camt accent">${fmt(d.adjRent)}</div><div class="cpct">${pct(d.adjRentPct)}</div></div>
   </div>`;
   if(d.invested>0) html+=`<div class="crow">
-    <div class="ci" style="background:rgba(0,212,170,.12)">📈</div>
+    <div class="ci" style="background:rgba(0,224,184,.12)">📈</div>
     <div class="cm"><div class="cn teal" style="font-weight:700">Investment</div>
       <div class="cbar"><div class="cbfill" style="width:${Math.round((d.invested/maxS)*100)}%;background:var(--teal)"></div></div></div>
     <div class="cr"><div class="camt teal">${fmt(d.invested)}</div><div class="cpct">${pct(d.investPct)}</div></div>
   </div>`;
   html+=`<div class="crow green-row">
-    <div class="ci" style="background:rgba(0,201,122,.15)">💵</div>
+    <div class="ci" style="background:rgba(0,212,124,.15)">💵</div>
     <div class="cm"><div class="cn green" style="font-weight:700">Money Left Over</div></div>
     <div class="cr"><div class="camt green">${fmt(d.leftover)}</div><div class="cpct" style="color:var(--green);opacity:.7">${pct(d.leftoverPct)}</div></div>
   </div>`;
   document.getElementById('cat-card').innerHTML=html;
 
+  // Credit cards — unique icon + brand color per card
   const usedCC=CCS.filter((_,i)=>d.ccAmts[i]>0);
   document.getElementById('cc-card').innerHTML=
-    (usedCC.length?usedCC.map(c=>{
+    (usedCC.length ? usedCC.map(c=>{
       const i=CCS.indexOf(c);
-      return`<div class="crow"><div class="ci" style="background:rgba(155,127,255,.12);font-size:9px;font-weight:800;color:var(--purple)">${c.slice(0,4)}</div>
-        <div class="cm"><div class="cn">${c}</div></div>
-        <div class="cr"><div class="camt" style="color:var(--purple)">${fmt(d.ccAmts[i])}</div></div>
+      const col=CC_COL[c]||'#6b7280';
+      const ico=CC_ICON[c]||'💳';
+      return`<div class="crow">
+        <div class="ci" style="background:${col}22;font-size:17px">${ico}</div>
+        <div class="cm"><div class="cn" style="font-weight:600">${c}</div></div>
+        <div class="cr"><div class="camt" style="color:${col}">${fmt(d.ccAmts[i])}</div></div>
       </div>`;
-    }).join(''):'<div class="empty"><div class="empty-icon">💳</div><div class="empty-text">No CC charges yet</div></div>')+
-    `<div class="crow">
-      <div class="ci" style="background:rgba(155,127,255,.12)">💳</div>
-      <div class="cm"><div class="cn" style="color:var(--purple);font-weight:700">Total CC Charges</div></div>
-      <div class="cr"><div class="camt" style="color:var(--purple)">${fmt(d.ccTotal)}</div></div></div>`;
+    }).join('') : '<div class="empty"><div class="empty-icon">💳</div><div class="empty-text">No CC charges yet</div></div>')+
+    `<div class="crow" style="background:rgba(124,107,255,.05)">
+      <div class="ci" style="background:rgba(124,107,255,.15);font-size:17px">🧾</div>
+      <div class="cm"><div class="cn accent" style="font-weight:700">Total CC Charges</div></div>
+      <div class="cr"><div class="camt accent">${fmt(d.ccTotal)}</div></div>
+    </div>`;
 }
 
 function renderLog(rows){
   document.getElementById('log-card').innerHTML=rows.length
-    ?rows.map(r=>`<div class="logrow${r.pre?' pre':''}">
-      <div class="log-icon" style="background:${(CAT_COL[r.cat]||'#6366f1')}22">${CAT_ICON[r.cat]||'📦'}</div>
-      <div class="log-m">
-        <div class="log-desc">${r.desc}</div>
-        <div class="log-chips">
-          <span class="chip chip-b">${r.cat}</span>
-          ${r.cc?`<span class="chip chip-p">${r.cc}</span>`:r.split<1?'<span class="chip chip-g">Sharon paid</span>':''}
-        </div>
-      </div>
-      <div class="log-r">
-        <div class="log-total">${fmt(r.total)}</div>
-        <div class="log-share">You: ${fmt(r.share)}</div>
-      </div>
-    </div>`).join('')
-    :`<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No expenses logged</div><div class="empty-sub">Tap + to add your first expense</div></div>`;
+    ? rows.map(r=>{
+        const col=CAT_COL[r.cat]||'#6366f1';
+        const ico=CAT_ICON[r.cat]||'📦';
+        const ccCol=CC_COL[r.cc]||'#6b7280';
+        const ccIco=CC_ICON[r.cc]||'💳';
+        return`<div class="logrow${r.pre?' pre':''}">
+          <div class="log-icon" style="background:${col}20">${ico}</div>
+          <div class="log-m">
+            <div class="log-desc">${r.desc}</div>
+            <div class="log-chips">
+              <span class="chip chip-b">${ico} ${r.cat}</span>
+              ${r.cc
+                ? `<span class="cc-chip" style="background:${ccCol}18;color:${ccCol}">${ccIco} ${r.cc}</span>`
+                : r.split<1 ? '<span class="chip chip-g">👤 Sharon paid</span>' : ''}
+            </div>
+          </div>
+          <div class="log-r">
+            <div class="log-total">${fmt(r.total)}</div>
+            <div class="log-share">You: ${fmt(r.share)}</div>
+          </div>
+        </div>`;
+      }).join('')
+    : `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No expenses logged</div><div class="empty-sub">Tap + to add your first expense</div></div>`;
 }
 
 function renderInvest(d){
   document.getElementById('brok-card').innerHTML=`
-    <div class="crow"><div class="ci" style="background:rgba(0,212,170,.12)">🤖</div>
+    <div class="crow"><div class="ci" style="background:rgba(0,224,184,.12)">🤖</div>
       <div class="cm"><div class="cn" style="font-weight:700">Robinhood Brokerage</div><div class="cpct">+${fmt(d.robAdd)} this month</div></div>
       <div class="cr"><div class="camt teal">${fmt(d.robBal)}</div></div></div>
-    <div class="crow"><div class="ci" style="background:rgba(0,212,170,.12)">📊</div>
+    <div class="crow"><div class="ci" style="background:rgba(0,224,184,.12)">📊</div>
       <div class="cm"><div class="cn" style="font-weight:700">Vanguard IRA</div><div class="cpct">+${fmt(d.vanAdd)} this month</div></div>
       <div class="cr"><div class="camt teal">${fmt(d.vanBal)}</div></div></div>`;
 
   const ally=[
-    {n:'Wants',    e:'🛒', a:d.wantsAdd, b:d.wantsBal},
-    {n:'Vacation', e:'✈️', a:d.vacAdd,   b:d.vacBal},
-    {n:'Car Fund', e:'🚗', a:d.carAdd,   b:d.carBal},
-    {n:'Emergency',e:'🆘', a:d.emergAdd, b:d.emergBal}
+    {n:'Wants',     e:'🛒', a:d.wantsAdd, b:d.wantsBal},
+    {n:'Vacation',  e:'✈️', a:d.vacAdd,   b:d.vacBal},
+    {n:'Car Fund',  e:'🚗', a:d.carAdd,   b:d.carBal},
+    {n:'Emergency', e:'🆘', a:d.emergAdd, b:d.emergBal},
   ];
   document.getElementById('ally-grid').innerHTML=ally.map(x=>
     `<div class="abkt">
@@ -910,17 +960,17 @@ function renderSharon(d){
     d.youOwe>0 ? `You owe Sharon ${fmt(d.youOwe)}` :
     d.sharonTotal>0 ? 'Sharon owes landlord' : 'All square';
   document.getElementById('sharon-card').innerHTML=`
-    <div class="crow"><div class="ci" style="background:rgba(155,127,255,.12)">💰</div>
+    <div class="crow"><div class="ci" style="background:rgba(179,157,255,.12)">💰</div>
       <div class="cm"><div class="cn">Base Rent Share</div></div>
       <div class="cr"><div class="camt">${fmt(d.sharonBase)}</div></div></div>
-    <div class="crow"><div class="ci" style="background:rgba(255,92,92,.12)">➕</div>
+    <div class="crow"><div class="ci" style="background:rgba(255,82,82,.12)">➕</div>
       <div class="cm"><div class="cn">You Covered</div><div class="cpct">adds to her rent</div></div>
       <div class="cr"><div class="camt" style="color:var(--red)">+${fmt(d.youCovered)}</div></div></div>
-    <div class="crow"><div class="ci" style="background:rgba(0,201,122,.12)">➖</div>
+    <div class="crow"><div class="ci" style="background:rgba(0,212,124,.12)">➖</div>
       <div class="cm"><div class="cn">Sharon Covered</div><div class="cpct">credits your rent</div></div>
       <div class="cr"><div class="camt" style="color:var(--green)">−${fmt(d.sheCovered)}</div></div></div>
     ${d.youOwe>0?`<div class="crow green-row">
-      <div class="ci" style="background:rgba(0,201,122,.15)">✅</div>
+      <div class="ci" style="background:rgba(0,212,124,.15)">✅</div>
       <div class="cm"><div class="cn green" style="font-weight:700">You Owe Sharon</div></div>
       <div class="cr"><div class="camt green">${fmt(d.youOwe)}</div></div></div>`:''}`;
 }
@@ -936,7 +986,6 @@ function nav(v){
   document.getElementById('scroll').scrollTop=0;
   if(token){if(isCached(MONTHS[mi]))renderAll(cache[MONTHS[mi]]);else loadData();}
 }
-
 function chMonth(d){
   mi=Math.max(0,Math.min(7,mi+d));
   document.getElementById('mname').textContent=MONTHS[mi];
@@ -950,10 +999,7 @@ function chMonth(d){
   sc.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;t0=Date.now();},{passive:true});
   sc.addEventListener('touchend',e=>{
     const dx=e.changedTouches[0].clientX-x0;
-    const dt=Date.now()-t0;
-    if(Math.abs(dx)>60&&dt<350){
-      chMonth(dx<0?1:-1);
-    }
+    if(Math.abs(dx)>60&&(Date.now()-t0)<350) chMonth(dx<0?1:-1);
   },{passive:true});
 })();
 
