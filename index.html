@@ -1016,18 +1016,25 @@ function renderLog(rows){
     el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No expenses logged</div><div class="empty-sub">Tap + to add your first expense</div></div>`;
     return;
   }
-  // Group rows by date, preserving order
+  // Sort descending by date (most recent first), undated rows at bottom
+  const sorted=[...rows].sort((a,b)=>{
+    if(!a.date&&!b.date) return 0;
+    if(!a.date) return 1;
+    if(!b.date) return -1;
+    return b.date.localeCompare(a.date);
+  });
+  // Group by date key, undated under sentinel '__nodate__'
   const groups=new Map();
-  rows.forEach(r=>{
-    const key=r.date||'';
+  sorted.forEach(r=>{
+    const key=r.date||'__nodate__';
     if(!groups.has(key)) groups.set(key,[]);
     groups.get(key).push(r);
   });
   let html='';
   groups.forEach((dayRows,dateKey)=>{
     const dayTotal=dayRows.reduce((a,r)=>a+r.share,0);
-    const label=formatLogDate(dateKey);
-    if(label) html+=`<div class="log-date-hdr"><span class="log-date-lbl">${label}</span><span class="log-date-amt">${fmt(dayTotal)}</span></div>`;
+    const label=dateKey==='__nodate__'?'No Date':formatLogDate(dateKey);
+    html+=`<div class="log-date-hdr"><span class="log-date-lbl">${label}</span><span class="log-date-amt">${fmt(dayTotal)}</span></div>`;
     dayRows.forEach(r=>{
       const col=CAT_COL[r.cat]||'#6366f1';
       const ico=CAT_ICON[r.cat]||'📦';
