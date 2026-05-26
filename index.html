@@ -201,18 +201,26 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 /* ── SPEND CHART ── */
 .chart-card {
   margin:10px 18px 0; background:var(--bg2); border:1px solid var(--line);
-  border-radius:var(--r); overflow:hidden;
+  border-radius:var(--r); overflow:hidden; padding:18px 16px 0;
 }
-.chart-hdr {
-  padding:13px 16px; border-bottom:1px solid var(--line);
+.chart-top { margin-bottom:4px; }
+.chart-total { font-family:var(--mono); font-size:32px; font-weight:500; color:var(--text); letter-spacing:-1.5px; line-height:1; }
+.chart-asof { font-size:11px; color:var(--text3); margin-top:5px; font-family:var(--mono); }
+.chart-body { margin:14px -16px 0; }
+.chart-footer {
+  display:flex; flex-direction:column; gap:0;
+  border-top:1px solid var(--line); margin:0 -16px;
+}
+.chart-leg-row {
   display:flex; align-items:center; justify-content:space-between;
+  padding:11px 16px; border-bottom:1px solid var(--line);
 }
-.chart-hdr-left { font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); }
-.chart-legend { display:flex; gap:12px; align-items:center; }
-.chart-leg-item { display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:9px; color:var(--text3); }
-.chart-leg-dot { width:8px; height:3px; border-radius:2px; }
-.chart-leg-dash { width:12px; height:0; border-top:2px dashed rgba(255,255,255,.25); }
-.chart-body { padding:14px 16px 10px; }
+.chart-leg-row:last-child { border-bottom:none; }
+.chart-leg-left { display:flex; align-items:center; gap:10px; }
+.chart-leg-line { width:20px; height:2px; border-radius:1px; flex-shrink:0; }
+.chart-leg-name { font-size:12px; color:var(--text2); font-weight:500; }
+.chart-leg-amt { font-family:var(--mono); font-size:13px; font-weight:500; color:var(--text); }
+.chart-leg-amt.muted { color:var(--text2); }
 
 /* ── LOG DATE HEADERS ── */
 .log-date-hdr {
@@ -534,11 +542,12 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
     <div class="donut-card" id="donut-card"></div>
     <div class="slbl">Daily Spending</div>
     <div class="chart-card">
-      <div class="chart-hdr">
-        <span class="chart-hdr-left">Spend per day</span>
-        <div class="chart-legend" id="chart-legend"></div>
+      <div class="chart-top">
+        <div class="chart-total" id="chart-total">—</div>
+        <div class="chart-asof" id="chart-asof">Your spending this month</div>
       </div>
       <div class="chart-body" id="spend-chart"></div>
+      <div class="chart-footer" id="chart-legend"></div>
     </div>
     <div class="lcard" id="cat-card"></div>
     <div class="slbl">Credit Cards</div>
@@ -922,10 +931,10 @@ function animateSlide(){
 const fmt=n=>'$'+(Math.abs(+n||0)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const pct=n=>(((+n||0)*100).toFixed(1))+'%';
 
-// ─── DAILY SPEND CHART ────────────────────────────────────
-function buildDailyTotals(rows, year, month){
+// ─── DAILY SPEND CHART (cumulative line) ──────────────────
+function buildCumulative(rows, year, month){
   const days=new Date(year,month+1,0).getDate();
-  const daily=new Array(days+2).fill(0);
+  const daily=new Array(days+1).fill(0);
   rows.forEach(r=>{
     if(!r.date) return;
     try{
@@ -937,102 +946,120 @@ function buildDailyTotals(rows, year, month){
       }
     }catch(e){}
   });
-  return{daily,days};
+  const cum=new Array(days+1).fill(0);
+  for(let d=1;d<=days;d++) cum[d]=cum[d-1]+daily[d];
+  return{cum,days};
 }
 
-function renderSpendChart(curRows, prevRows){
+function renderSpendChart(curRows,prevRows){
   const chartEl=document.getElementById('spend-chart');
-  const legEl=document.getElementById('chart-legend');
+  const legEl  =document.getElementById('chart-legend');
+  const totalEl=document.getElementById('chart-total');
+  const asofEl =document.getElementById('chart-asof');
   if(!chartEl) return;
 
   const curMD=new Date(MDATES[mi]+'T00:00:00');
   const curYear=curMD.getFullYear(), curMon=curMD.getMonth();
-  const{daily:curD,days:curDays}=buildDailyTotals(curRows,curYear,curMon);
+  const{cum:curCum,days:curDays}=buildCumulative(curRows,curYear,curMon);
 
-  let prevD=[],prevDays=0,prevLabel='';
+  const now=new Date();
+  const todayDay=(now.getFullYear()===curYear&&now.getMonth()===curMon)
+    ?now.getDate():curDays;
+  const curSpent=curCum[Math.min(todayDay,curDays)];
+
+  let prevCum=[],prevDays=0,prevSpent=0,prevLabel='';
   if(mi>0&&prevRows.length){
     const prMD=new Date(MDATES[mi-1]+'T00:00:00');
-    const r=buildDailyTotals(prevRows,prMD.getFullYear(),prMD.getMonth());
-    prevD=r.daily; prevDays=r.days;
-    prevLabel=MONTHS[mi-1].split(' ')[0];
+    const r=buildCumulative(prevRows,prMD.getFullYear(),prMD.getMonth());
+    prevCum=r.cum; prevDays=r.days; prevSpent=r.cum[r.days];
+    prevLabel=MONTHS[mi-1];
   }
 
-  const maxVal=Math.max(...curD.slice(1),...(prevD.length?prevD.slice(1):[0]),1);
-  const now=new Date();
-  const todayDay=(now.getFullYear()===curYear&&now.getMonth()===curMon)?now.getDate():0;
-  const curLabel=MONTHS[mi].split(' ')[0];
-
-  // Legend
-  if(legEl){
-    legEl.innerHTML=`
-      <span class="chart-leg-item"><span class="chart-leg-dot" style="background:var(--accent)"></span>${curLabel}</span>
-      ${prevLabel?`<span class="chart-leg-item"><span class="chart-leg-dash"></span>${prevLabel}</span>`:''}`;
+  // Header
+  if(totalEl) totalEl.textContent=fmt(curSpent);
+  if(asofEl){
+    const d=new Date(curYear,curMon,Math.min(todayDay,curDays));
+    const dateStr=d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    asofEl.textContent=`Your spending as of ${dateStr}`;
   }
 
-  // SVG layout: viewBox 320×110, chart area L=6 R=6 T=8 B=22
-  const VW=320,VH=110,CL=6,CR=6,CT=8,CB=22;
+  const maxVal=Math.max(curCum[curDays],...(prevCum.length?[prevCum[prevDays]]:[]),1);
+
+  // SVG: 320×108, chart area L=2 R=2 T=6 B=20
+  const VW=320,VH=108,CL=2,CR=2,CT=6,CB=20;
   const CW=VW-CL-CR, CH=VH-CT-CB;
-  const bx=d=>CL+((d-1)/curDays)*CW;
-  const bw=Math.max(1.5, CW/curDays*0.68);
-  const bc=d=>CL+((d-0.5)/curDays)*CW;
-  const yv=v=>CT+CH-(v/maxVal)*CH;
+  // x maps day→pixel using current month total days as x-range
+  const xp=d=>CL+((d-1)/Math.max(curDays-1,1))*CW;
+  const yp=v=>CT+CH-(Math.max(0,v)/maxVal)*CH;
 
-  // Grid lines
-  const grid=[0.25,0.5,0.75,1].map(f=>{
-    const y=CT+CH*(1-f);
-    return`<line x1="${CL}" y1="${y.toFixed(1)}" x2="${VW-CR}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="${f===1?'0':'0.75'}"/>`;
+  // Gradient def
+  const defs=`<defs>
+    <linearGradient id="cg${mi}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+    </linearGradient>
+  </defs>`;
+
+  // Previous month line — scale its days to current month x-range
+  let prevLine='';
+  if(prevCum.length>=2){
+    const pts=[];
+    for(let d=1;d<=prevDays;d++){
+      // Map prev day to same x-axis (scale by day ratio)
+      const scaledD=1+((d-1)/(Math.max(prevDays-1,1)))*(curDays-1);
+      pts.push(`${xp(scaledD).toFixed(1)},${yp(prevCum[d]).toFixed(1)}`);
+    }
+    prevLine=`<polyline points="${pts.join(' ')}" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }
+
+  // Current month line (up to today)
+  const stopDay=Math.min(todayDay,curDays);
+  const curPts=[];
+  for(let d=1;d<=stopDay;d++) curPts.push(`${xp(d).toFixed(1)},${yp(curCum[d]).toFixed(1)}`);
+
+  let curLine='', areaFill='', todayDot='', todayVline='';
+  if(curPts.length>=2){
+    // Area fill
+    const areaD=`M${xp(1).toFixed(1)},${yp(0).toFixed(1)} L${curPts.join(' L')} L${xp(stopDay).toFixed(1)},${yp(0).toFixed(1)} Z`;
+    areaFill=`<path d="${areaD}" fill="url(#cg${mi})"/>`;
+    curLine=`<polyline points="${curPts.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+    // Today dot + vertical line
+    const tx=parseFloat(xp(stopDay).toFixed(1));
+    const ty=parseFloat(yp(curCum[stopDay]).toFixed(1));
+    todayVline=`<line x1="${tx}" y1="${CT}" x2="${tx}" y2="${CT+CH}" stroke="rgba(255,255,255,.15)" stroke-width="1"/>`;
+    todayDot=`<circle cx="${tx}" cy="${ty}" r="4.5" fill="var(--bg2)" stroke="var(--accent)" stroke-width="2.2"/>
+              <circle cx="${tx}" cy="${ty}" r="2" fill="var(--accent)"/>`;
+  }
+
+  // X-axis labels: 1, mid, last
+  const mid=Math.round(curDays/2);
+  const xlabels=[1,mid,curDays].map(d=>{
+    const anchor=d===1?'start':d===curDays?'end':'middle';
+    return`<text x="${xp(d).toFixed(1)}" y="${VH-4}" text-anchor="${anchor}" fill="var(--text3)" font-size="8" font-family="DM Mono,monospace">${d}</text>`;
   }).join('');
 
-  // Max-value Y label
-  const maxLbl=maxVal>=1000?'$'+(maxVal/1000).toFixed(1)+'k':fmt(maxVal);
-  const yLabel=`<text x="${CL}" y="${CT-2}" fill="var(--text3)" font-size="6.5" font-family="DM Mono,monospace">${maxLbl}</text>`;
-
-  // Previous month polyline
-  let prevLine='';
-  if(prevD.length){
-    const pts=[];
-    for(let d=1;d<=Math.min(curDays,prevDays);d++) pts.push(`${bc(d).toFixed(1)},${yv(prevD[d]||0).toFixed(1)}`);
-    if(pts.length>=2){
-      prevLine=`<polyline points="${pts.join(' ')}" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5" stroke-dasharray="3 2" stroke-linecap="round" stroke-linejoin="round"/>`;
-    }
-  }
-
-  // Current month bars
-  let bars='';
-  for(let d=1;d<=curDays;d++){
-    const val=curD[d]||0;
-    const x=bx(d), barH=(val/maxVal)*CH, y=yv(val);
-    const isToday=d===todayDay;
-    const isFuture=todayDay>0&&d>todayDay;
-    if(isFuture){
-      bars+=`<rect x="${x.toFixed(1)}" y="${(CT+CH-1).toFixed(1)}" width="${bw.toFixed(1)}" height="1" rx="0.5" fill="var(--line2)"/>`;
-    } else if(val>0){
-      const col=isToday?'var(--teal)':'var(--accent)';
-      bars+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${barH.toFixed(1)}" rx="2" fill="${col}" opacity="${isToday?'1':'0.82'}"/>`;
-      // Hover tooltip value on today
-      if(isToday) bars+=`<text x="${bc(d).toFixed(1)}" y="${(y-3).toFixed(1)}" text-anchor="middle" fill="var(--teal)" font-size="6" font-family="DM Mono,monospace">${fmt(val)}</text>`;
-    } else {
-      bars+=`<rect x="${x.toFixed(1)}" y="${(CT+CH-1.5).toFixed(1)}" width="${bw.toFixed(1)}" height="1.5" rx="0.5" fill="var(--line)" opacity="0.5"/>`;
-    }
-  }
-
-  // Today vertical marker
-  const todayLine=todayDay?`<line x1="${bc(todayDay).toFixed(1)}" y1="${CT}" x2="${bc(todayDay).toFixed(1)}" y2="${CT+CH}" stroke="var(--teal)" stroke-width="1" stroke-dasharray="2 2" opacity="0.45"/>`:'';
-
-  // X-axis labels — day 1, every 7 days, today, last day
-  const labelSet=new Set([1]);
-  for(let d=7;d<curDays;d+=7) labelSet.add(d);
-  labelSet.add(curDays);
-  if(todayDay) labelSet.add(todayDay);
-  let xlabels='';
-  labelSet.forEach(d=>{
-    const isToday=d===todayDay;
-    xlabels+=`<text x="${bc(d).toFixed(1)}" y="${VH-5}" text-anchor="middle" fill="${isToday?'var(--teal)':'var(--text3)'}" font-size="7" font-family="DM Mono,monospace" font-weight="${isToday?'500':'400'}">${isToday?'◆ ':''}${d}</text>`;
-  });
-
-  chartEl.innerHTML=`<svg width="100%" viewBox="0 0 ${VW} ${VH}" style="display:block;overflow:visible">
-    ${grid}${yLabel}${prevLine}${bars}${todayLine}${xlabels}
+  chartEl.innerHTML=`<svg width="100%" viewBox="0 0 ${VW} ${VH}" style="display:block">
+    ${defs}${areaFill}${prevLine}${curLine}${todayVline}${todayDot}${xlabels}
   </svg>`;
+
+  // Footer legend
+  if(legEl){
+    legEl.innerHTML=`
+      <div class="chart-leg-row">
+        <div class="chart-leg-left">
+          <div class="chart-leg-line" style="background:var(--accent)"></div>
+          <span class="chart-leg-name">${MONTHS[mi]}</span>
+        </div>
+        <span class="chart-leg-amt">${fmt(curSpent)}</span>
+      </div>
+      ${prevLabel?`<div class="chart-leg-row">
+        <div class="chart-leg-left">
+          <div class="chart-leg-line" style="background:rgba(255,255,255,.25)"></div>
+          <span class="chart-leg-name">${prevLabel}</span>
+        </div>
+        <span class="chart-leg-amt muted">${fmt(prevSpent)}</span>
+      </div>`:''}`;
+  }
 }
 
 function renderDonut(d){
