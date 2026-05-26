@@ -845,8 +845,7 @@ async function loadData(){
     `'${mn}'!D56:D71`,
     `'${mn}'!J12:R${ROWS.logEnd}`,
   ];
-  // [6] previous month log for chart comparison
-  if(mi>0) ranges.push(`'${MONTHS[mi-1]}'!J12:R${ROWS.logEnd}`);
+  // Main load — no previous month here so a missing tab can't break everything
   const vr=await sheetsBatchGet(ranges);
   if(!vr){ loading=false; toast('Could not load data — check connection','#ef4444'); return; }
 
@@ -905,13 +904,19 @@ async function loadData(){
     notes:r[8]||'', pre: i < 9
   }));
 
-  // Previous month log rows (only date + share needed for chart)
+  // Previous month log — separate request so a missing tab doesn't break the main load
   let prevLogRows=[];
-  if(mi>0 && vr[6] && vr[6].values){
-    prevLogRows=(vr[6].values||[]).filter(r=>(r[2]||'').toString().trim()).map(r=>({
-      date:r[1]||'',
-      share:(()=>{ const v=(r[7]||'').toString().trim(); return parseFloat(v.replace(/[$,"\s]/g,''))||0; })()
-    }));
+  if(mi>0){
+    try{
+      const prevRange=`'${MONTHS[mi-1]}'!J12:R${ROWS.logEnd}`;
+      const prevVr=await sheetsBatchGet([prevRange]);
+      if(prevVr&&prevVr[0]&&prevVr[0].values){
+        prevLogRows=prevVr[0].values.filter(r=>(r[2]||'').toString().trim()).map(r=>({
+          date:r[1]||'',
+          share:(()=>{ const v=(r[7]||'').toString().trim(); return parseFloat(v.replace(/[$,"\s]/g,''))||0; })()
+        }));
+      }
+    }catch(e){ /* previous month tab missing — chart just won't show comparison */ }
   }
 
   loading=false;
