@@ -976,11 +976,13 @@ function renderSpendChart(curRows,prevRows){
   }
 
   // Header
-  if(totalEl) totalEl.textContent=fmt(curSpent);
+  const origTotal=fmt(curSpent);
+  if(totalEl) totalEl.textContent=origTotal;
+  let origAsof='';
   if(asofEl){
     const d=new Date(curYear,curMon,Math.min(todayDay,curDays));
-    const dateStr=d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    asofEl.textContent=`Your spending as of ${dateStr}`;
+    origAsof=`Your spending as of ${d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
+    asofEl.textContent=origAsof;
   }
 
   const maxVal=Math.max(curCum[curDays],...(prevCum.length?[prevCum[prevDays]]:[]),1);
@@ -988,7 +990,6 @@ function renderSpendChart(curRows,prevRows){
   // SVG: 320×108, chart area L=2 R=2 T=6 B=20
   const VW=320,VH=108,CL=2,CR=2,CT=6,CB=20;
   const CW=VW-CL-CR, CH=VH-CT-CB;
-  // x maps day→pixel using current month total days as x-range
   const xp=d=>CL+((d-1)/Math.max(curDays-1,1))*CW;
   const yp=v=>CT+CH-(Math.max(0,v)/maxVal)*CH;
 
@@ -1005,7 +1006,6 @@ function renderSpendChart(curRows,prevRows){
   if(prevCum.length>=2){
     const pts=[];
     for(let d=1;d<=prevDays;d++){
-      // Map prev day to same x-axis (scale by day ratio)
       const scaledD=1+((d-1)/(Math.max(prevDays-1,1)))*(curDays-1);
       pts.push(`${xp(scaledD).toFixed(1)},${yp(prevCum[d]).toFixed(1)}`);
     }
@@ -1019,11 +1019,9 @@ function renderSpendChart(curRows,prevRows){
 
   let curLine='', areaFill='', todayDot='', todayVline='';
   if(curPts.length>=2){
-    // Area fill
     const areaD=`M${xp(1).toFixed(1)},${yp(0).toFixed(1)} L${curPts.join(' L')} L${xp(stopDay).toFixed(1)},${yp(0).toFixed(1)} Z`;
     areaFill=`<path d="${areaD}" fill="url(#cg${mi})"/>`;
     curLine=`<polyline points="${curPts.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
-    // Today dot + vertical line
     const tx=parseFloat(xp(stopDay).toFixed(1));
     const ty=parseFloat(yp(curCum[stopDay]).toFixed(1));
     todayVline=`<line x1="${tx}" y1="${CT}" x2="${tx}" y2="${CT+CH}" stroke="rgba(255,255,255,.15)" stroke-width="1"/>`;
@@ -1038,9 +1036,67 @@ function renderSpendChart(curRows,prevRows){
     return`<text x="${xp(d).toFixed(1)}" y="${VH-4}" text-anchor="${anchor}" fill="var(--text3)" font-size="8" font-family="DM Mono,monospace">${d}</text>`;
   }).join('');
 
+  // Hover scrubber elements (hidden until interaction)
+  const scrubber = curPts.length>=2 ? `
+    <line id="sc-vline" x1="0" y1="${CT}" x2="0" y2="${CT+CH}"
+      stroke="rgba(255,255,255,.4)" stroke-width="1" stroke-dasharray="3,3" style="display:none"/>
+    <circle id="sc-dot-o" cx="0" cy="0" r="5" fill="var(--bg2)" stroke="var(--accent)" stroke-width="2.2" style="display:none"/>
+    <circle id="sc-dot-i" cx="0" cy="0" r="2.2" fill="var(--accent)" style="display:none"/>
+    <rect id="sc-capture" x="${CL}" y="${CT}" width="${CW}" height="${CH}"
+      fill="transparent" style="cursor:crosshair;touch-action:none"/>
+  ` : '';
+
   chartEl.innerHTML=`<svg width="100%" viewBox="0 0 ${VW} ${VH}" style="display:block">
-    ${defs}${areaFill}${prevLine}${curLine}${todayVline}${todayDot}${xlabels}
+    ${defs}${areaFill}${prevLine}${curLine}${todayVline}${todayDot}${scrubber}${xlabels}
   </svg>`;
+
+  // ── Scrubber event handlers ──────────────────────────────
+  if(curPts.length>=2){
+    const svg      = chartEl.querySelector('svg');
+    const scVline  = document.getElementById('sc-vline');
+    const scDotO   = document.getElementById('sc-dot-o');
+    const scDotI   = document.getElementById('sc-dot-i');
+    const scRect   = document.getElementById('sc-capture');
+
+    function doHover(clientX){
+      const bb  = svg.getBoundingClientRect();
+      const svgX= (clientX - bb.left) * (VW / bb.width);
+      const rawD= ((svgX - CL) / CW) * (curDays - 1) + 1;
+      const day = Math.max(1, Math.min(stopDay, Math.round(rawD)));
+      const val = curCum[day];
+      const tx  = xp(day).toFixed(1);
+      const ty  = yp(val).toFixed(1);
+
+      // Update header numbers
+      if(totalEl) totalEl.textContent = fmt(val);
+      if(asofEl){
+        const hd = new Date(curYear, curMon, day);
+        const ds = hd.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+        asofEl.textContent = `Spent by ${ds}`;
+      }
+
+      // Move scrubber
+      scVline.setAttribute('x1', tx); scVline.setAttribute('x2', tx);
+      scDotO.setAttribute('cx', tx);  scDotO.setAttribute('cy', ty);
+      scDotI.setAttribute('cx', tx);  scDotI.setAttribute('cy', ty);
+      scVline.style.display = '';
+      scDotO.style.display  = '';
+      scDotI.style.display  = '';
+    }
+
+    function doLeave(){
+      scVline.style.display = 'none';
+      scDotO.style.display  = 'none';
+      scDotI.style.display  = 'none';
+      if(totalEl) totalEl.textContent = origTotal;
+      if(asofEl)  asofEl.textContent  = origAsof;
+    }
+
+    scRect.addEventListener('mousemove',  e => doHover(e.clientX));
+    scRect.addEventListener('mouseleave', doLeave);
+    scRect.addEventListener('touchmove',  e => { e.preventDefault(); doHover(e.touches[0].clientX); }, {passive:false});
+    scRect.addEventListener('touchend',   doLeave, {passive:true});
+  }
 
   // Footer legend
   if(legEl){
