@@ -504,7 +504,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   <div class="hdr-r">
     <div class="mpill">
       <button class="mbtn" onclick="chMonth(-1)">‹</button>
-      <span class="mname" id="mname">May 2026</span>
+      <span class="mname" id="mname">May 2026</span><!-- updated by JS on init -->
       <button class="mbtn" onclick="chMonth(1)">›</button>
     </div>
     <div class="sync-wrap">
@@ -675,8 +675,8 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 // ─── CONSTANTS ────────────────────────────────────────────
-const MONTHS = ['May 2026','Jun 2026','Jul 2026','Aug 2026','Sep 2026','Oct 2026','Nov 2026','Dec 2026'];
-const MDATES = ['2026-05-01','2026-06-01','2026-07-01','2026-08-01','2026-09-01','2026-10-01','2026-11-01','2026-12-01'];
+const MONTHS = ['Apr 2026','May 2026','Jun 2026','Jul 2026','Aug 2026','Sep 2026','Oct 2026','Nov 2026','Dec 2026'];
+const MDATES = ['2026-04-01','2026-05-01','2026-06-01','2026-07-01','2026-08-01','2026-09-01','2026-10-01','2026-11-01','2026-12-01'];
 const CATS   = ['Groceries','Utilities','Gas / Transport','Dining / Takeout','Entertainment','Health','Shopping','Subscriptions','Cash','Personal / Misc','Other'];
 const CCS    = ['CFF','CFU','CSP','Discover','Citi','Capital One','WF','Amazon Card','Robinhood','Cash','Other'];
 
@@ -742,7 +742,7 @@ const ROWS = {
 };
 
 // ─── STATE ────────────────────────────────────────────────
-let mi=0, curView='dash', token=null, cfg=null, loading=false, slideDir=0;
+let mi=1, curView='dash', token=null, cfg=null, loading=false, slideDir=0;
 const cache={}, cacheTs={};
 const CACHE_TTL=60000;
 function isCached(m){return cache[m]&&(Date.now()-cacheTs[m])<CACHE_TTL;}
@@ -1465,6 +1465,7 @@ function toast(msg,color='#1e2440'){
 
 // ─── INIT ─────────────────────────────────────────────────
 loadConfig();
+document.getElementById('mname').textContent=MONTHS[mi]; // sync pill to default month
 if(cfg){
   document.getElementById('setup-banner').classList.add('hidden');
   setTimeout(initAuth,800);
