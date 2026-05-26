@@ -1014,7 +1014,9 @@ function renderSpendChart(curRows,prevRows){
     }
   }
 
-  const maxVal=Math.max(curCum[curDays],...(prevCum.length?[prevCum[prevDays]]:[]),1);
+  const peakVal=Math.max(curCum[curDays],...(prevCum.length?[prevCum[prevDays]]:[]),1);
+  // Add 15% headroom above peak so lines don't hug the top edge
+  const maxVal=peakVal*1.15;
 
   // SVG: 320×108, chart area L=2 R=2 T=6 B=20
   const VW=320,VH=108,CL=2,CR=2,CT=6,CB=20;
@@ -1053,9 +1055,9 @@ function renderSpendChart(curRows,prevRows){
     curLine=`<polyline points="${curPts.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
     const tx=parseFloat(xp(stopDay).toFixed(1));
     const ty=parseFloat(yp(curCum[stopDay]).toFixed(1));
-    todayVline=`<line x1="${tx}" y1="${CT}" x2="${tx}" y2="${CT+CH}" stroke="rgba(255,255,255,.15)" stroke-width="1"/>`;
-    todayDot=`<circle cx="${tx}" cy="${ty}" r="4.5" fill="var(--bg2)" stroke="var(--accent)" stroke-width="2.2"/>
-              <circle cx="${tx}" cy="${ty}" r="2" fill="var(--accent)"/>`;
+    todayVline=`<line x1="${tx}" y1="${CT}" x2="${tx}" y2="${CT+CH}" stroke="rgba(255,255,255,.12)" stroke-width="1"/>`;
+    todayDot=`<circle cx="${tx}" cy="${ty}" r="3" fill="var(--bg2)" stroke="var(--accent)" stroke-width="1.8"/>
+              <circle cx="${tx}" cy="${ty}" r="1.3" fill="var(--accent)"/>`;
   }
 
   // X-axis labels: 1, mid, last
@@ -1069,8 +1071,8 @@ function renderSpendChart(curRows,prevRows){
   const scrubber = curPts.length>=2 ? `
     <line id="sc-vline" x1="0" y1="${CT}" x2="0" y2="${CT+CH}"
       stroke="rgba(255,255,255,.4)" stroke-width="1" stroke-dasharray="3,3" style="display:none"/>
-    <circle id="sc-dot-o" cx="0" cy="0" r="5" fill="var(--bg2)" stroke="var(--accent)" stroke-width="2.2" style="display:none"/>
-    <circle id="sc-dot-i" cx="0" cy="0" r="2.2" fill="var(--accent)" style="display:none"/>
+    <circle id="sc-dot-o" cx="0" cy="0" r="3" fill="var(--bg2)" stroke="var(--accent)" stroke-width="1.8" style="display:none"/>
+    <circle id="sc-dot-i" cx="0" cy="0" r="1.3" fill="var(--accent)" style="display:none"/>
     <rect id="sc-capture" x="${CL}" y="${CT}" width="${CW}" height="${CH}"
       fill="transparent" style="cursor:crosshair;touch-action:none"/>
   ` : '';
