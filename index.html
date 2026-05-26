@@ -1381,7 +1381,7 @@ function nav(v){
   if(token){if(isCached(MONTHS[mi]))renderAll(cache[MONTHS[mi]]);else loadData();}
 }
 function chMonth(d){
-  mi=Math.max(0,Math.min(7,mi+d));
+  mi=Math.max(0,Math.min(MONTHS.length-1,mi+d));
   slideDir=d;
   document.getElementById('mname').textContent=MONTHS[mi];
   if(token){invalidate(MONTHS[mi]);loadData();}
