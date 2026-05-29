@@ -111,11 +111,11 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 }
 .bni {
   flex:1; display:flex; flex-direction:column; align-items:center;
-  justify-content:center; padding:10px 4px 9px; cursor:pointer;
+  justify-content:center; padding:9px 2px 8px; cursor:pointer;
   border:none; background:transparent; color:var(--text3);
-  font-family:var(--sans); font-size:8px; font-weight:700;
-  letter-spacing:.08em; text-transform:uppercase; gap:5px;
-  transition:color .2s; min-height:58px; position:relative;
+  font-family:var(--sans); font-size:7px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; gap:4px;
+  transition:color .2s; min-height:56px; position:relative;
 }
 .bni-pip {
   position:absolute; top:6px; left:50%; transform:translateX(-50%) scaleX(0);
@@ -125,7 +125,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 }
 .bni.active .bni-pip { transform:translateX(-50%) scaleX(1); }
 .bni.active { color:var(--accent); }
-.bni-icon { font-size:20px; line-height:1; transition:transform .25s cubic-bezier(.34,1.56,.64,1); }
+.bni-icon { font-size:18px; line-height:1; transition:transform .25s cubic-bezier(.34,1.56,.64,1); }
 .bni.active .bni-icon { transform:scale(1.15) translateY(-1px); }
 
 /* ── PAGES ── */
@@ -472,6 +472,70 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 }
 .msave:active { transform:scale(.97); box-shadow:0 2px 10px rgba(124,107,255,.2); }
 
+/* ── BUDGET PAGE ── */
+.budget-summary {
+  margin:14px 18px 0; display:grid; grid-template-columns:1fr 1fr; gap:10px;
+}
+.bsum-card {
+  background:var(--bg2); border:1px solid var(--line);
+  border-radius:var(--r-sm); padding:16px; position:relative; overflow:hidden;
+}
+.bsum-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.bsum-card.good::before  { background:var(--grad-green); }
+.bsum-card.warn::before  { background:var(--grad-red); }
+.bsum-card.plain::before { background:var(--grad-accent); }
+.bsum-lbl { font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); margin-bottom:6px; }
+.bsum-val { font-family:var(--mono); font-size:22px; font-weight:500; color:var(--text); letter-spacing:-1px; }
+.bsum-sub { font-size:10px; color:var(--text3); margin-top:4px; font-family:var(--mono); }
+
+.proj-card {
+  margin:10px 18px 0; background:var(--bg2); border:1px solid var(--line);
+  border-radius:var(--r); padding:18px 20px;
+}
+.proj-row { display:flex; align-items:center; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--line); }
+.proj-row:last-child { border-bottom:none; }
+.proj-lbl { font-size:12px; color:var(--text2); }
+.proj-val { font-family:var(--mono); font-size:13px; font-weight:500; color:var(--text); }
+.proj-val.green { color:var(--green); }
+.proj-val.red   { color:var(--red); }
+.proj-val.amber { color:var(--amber); }
+
+/* Budget category rows */
+.bcat-row {
+  display:flex; align-items:center; padding:13px 16px;
+  border-bottom:1px solid var(--line); gap:12px; transition:background .12s;
+}
+.bcat-row:last-child { border-bottom:none; }
+.bcat-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.bcat-mid { flex:1; min-width:0; }
+.bcat-name { font-size:13px; font-weight:600; color:var(--text); margin-bottom:5px; }
+.bcat-bar { height:4px; background:var(--line); border-radius:2px; overflow:hidden; margin-bottom:4px; }
+.bcat-fill { height:4px; border-radius:2px; transition:width .5s cubic-bezier(.34,1.56,.64,1); }
+.bcat-status { font-size:10px; color:var(--text3); font-family:var(--mono); }
+.bcat-status.over { color:var(--red); }
+.bcat-right { text-align:right; flex-shrink:0; }
+.bcat-actual { font-family:var(--mono); font-size:14px; font-weight:500; color:var(--text); }
+.bcat-budget {
+  font-size:11px; color:var(--text2); margin-top:4px; cursor:pointer;
+  font-family:var(--mono); display:flex; align-items:center; gap:3px; justify-content:flex-end;
+  border-radius:5px; padding:2px 4px; transition:background .12s;
+}
+.bcat-budget:active { background:var(--bg4); }
+.bcat-budget-input {
+  font-family:var(--mono); font-size:12px; color:var(--accent); background:var(--bg3);
+  border:1.5px solid var(--accent); border-radius:6px; padding:3px 8px;
+  width:80px; text-align:right; outline:none;
+}
+.budget-edit-hint { font-size:10px; color:var(--text3); text-align:center; padding:12px 0 4px; font-family:var(--mono); }
+
+/* Recurring chip */
+.chip-r { background:rgba(0,224,184,.1); color:var(--teal); }
+
+/* Recurring toggle in form */
+.recur-toggle { display:flex; align-items:center; gap:10px; cursor:pointer; padding:12px 0 0; }
+.recur-toggle input[type=checkbox] { width:18px; height:18px; accent-color:var(--accent); cursor:pointer; flex-shrink:0; }
+.recur-toggle-lbl { font-size:13px; color:var(--text2); font-weight:500; user-select:none; }
+
 /* ── EMPTY ── */
 .empty { padding:52px 24px; text-align:center; }
 .empty-icon { font-size:40px; opacity:.2; margin-bottom:12px; }
@@ -572,6 +636,19 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
     <div class="pb"></div>
   </div>
 
+  <!-- BUDGET -->
+  <div class="page" id="p-budget">
+    <div class="slbl">Overview</div>
+    <div class="budget-summary" id="budget-summary"></div>
+    <div class="slbl">Projections</div>
+    <div class="proj-card" id="proj-card"></div>
+    <div class="slbl">Budget vs Actual</div>
+    <div class="lcard" id="budget-cat-card"></div>
+    <div class="slbl">Recurring Expenses</div>
+    <div class="lcard" id="budget-recur-card"></div>
+    <div class="pb"></div>
+  </div>
+
   <!-- INVESTMENTS -->
   <div class="page" id="p-invest">
     <div class="slbl">Brokerage &amp; IRA</div>
@@ -621,6 +698,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 <nav class="bnav">
   <button class="bni active" onclick="nav('dash')"     id="bn-dash">    <div class="bni-pip"></div><span class="bni-icon">◈</span>Dash</button>
   <button class="bni"        onclick="nav('log')"      id="bn-log">     <div class="bni-pip"></div><span class="bni-icon">≡</span>Log</button>
+  <button class="bni"        onclick="nav('budget')"   id="bn-budget">  <div class="bni-pip"></div><span class="bni-icon">🎯</span>Budget</button>
   <button class="bni"        onclick="nav('invest')"   id="bn-invest">  <div class="bni-pip"></div><span class="bni-icon">↗</span>Invest</button>
   <button class="bni"        onclick="nav('sharon')"   id="bn-sharon">  <div class="bni-pip"></div><span class="bni-icon">⇄</span>Sharon</button>
   <button class="bni"        onclick="nav('settings')" id="bn-settings"><div class="bni-pip"></div><span class="bni-icon">◎</span>Settings</button>
@@ -665,7 +743,11 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
         <span class="prev-val" id="f-prev">$0.00</span>
       </div>
       <div class="mfg"><label>Notes</label><input type="text" id="f-notes" placeholder="Optional..." autocomplete="off"></div>
-      <button class="msave" onclick="saveExpense()">Save Expense</button>
+      <label class="recur-toggle">
+        <input type="checkbox" id="f-recurring">
+        <span class="recur-toggle-lbl">🔁 Recurring expense</span>
+      </label>
+      <button class="msave" onclick="saveExpense()" style="margin-top:18px">Save Expense</button>
     </div>
   </div>
 </div>
@@ -839,11 +921,11 @@ async function loadData(){
   const mn=MONTHS[mi];
   const ranges=[
     `'${mn}'!D6:H9`,
-    `'${mn}'!D12:E26`,
+    `'${mn}'!D12:F26`,       // extended to col F for Budget $
     `'${mn}'!D29:D40`,
     `'${mn}'!D44:F52`,
     `'${mn}'!D56:D71`,
-    `'${mn}'!J12:R${ROWS.logEnd}`,
+    `'${mn}'!J12:S${ROWS.logEnd}`, // extended to col S for Recurring
   ];
   // Main load — no previous month here so a missing tab can't break everything
   const vr=await sheetsBatchGet(ranges);
@@ -870,6 +952,7 @@ async function loadData(){
   const CAT=vr[1].values||[];
   const catShares  =CATS.map((_,i)=>g(CAT,i,0));
   const catPcts    =CATS.map((_,i)=>gp(CAT,i,1));
+  const catBudgets =CATS.map((_,i)=>g(CAT,i,2)); // col F = Budget $
   const adjRent    =g(CAT,11,0); const adjRentPct =gp(CAT,11,1);
   const invested   =g(CAT,12,0); const investPct  =gp(CAT,12,1);
   const leftover   =g(CAT,14,0); const leftoverPct=gp(CAT,14,1);
@@ -901,7 +984,9 @@ async function loadData(){
     total:(()=>{ const v=(r[5]||'').toString().trim(); return parseFloat(v.replace(/[$,"\s]/g,''))||0; })(),
     split:(()=>{ const v=(r[6]||'').toString().trim(); if(!v) return 1; if(v.endsWith('%')) return parseFloat(v)/100||1; const n=parseFloat(v)||1; return n>1?n/100:n; })(),
     share:(()=>{ const v=(r[7]||'').toString().trim(); return parseFloat(v.replace(/[$,"\s]/g,''))||0; })(),
-    notes:r[8]||'', pre: i < 9
+    notes:r[8]||'',
+    recurring: /^(true|yes|1)$/i.test((r[9]||'').toString().trim()),
+    pre: i < 9
   }));
 
   // Previous month log — separate request so a missing tab doesn't break the main load
@@ -921,14 +1006,14 @@ async function loadData(){
 
   loading=false;
   const d={income,pay1,pay2,carry,adjRent,adjRentPct,ccTotal,leftover,leftoverPct,
-    invested,investPct,catShares,catPcts,ccAmts,logRows,prevLogRows,
+    invested,investPct,catShares,catPcts,catBudgets,ccAmts,logRows,prevLogRows,
     robAdd,robBal,vanAdd,vanBal,wantsAdd,wantsBal,vacAdd,vacBal,carAdd,carBal,emergAdd,emergBal,allyTotal,
     sharonBase,sheCovered,youCovered,sharonTotal,youOwe};
   cache[mn]=d; cacheTs[mn]=Date.now();
   renderAll(d);
 }
 
-function renderAll(d){ renderDash(d); renderLog(d.logRows||[]); renderInvest(d); renderSharon(d); renderSpendChart(d.logRows||[], d.prevLogRows||[]); animateSlide(); }
+function renderAll(d){ renderDash(d); renderLog(d.logRows||[]); renderBudget(d); renderInvest(d); renderSharon(d); renderSpendChart(d.logRows||[], d.prevLogRows||[]); animateSlide(); }
 
 function animateSlide(){
   if(!slideDir) return;
@@ -1311,6 +1396,7 @@ function renderLog(rows){
             ${r.cc
               ?`<span class="cc-chip" style="background:${ccCol}18;color:${ccCol}">${ccIco} ${r.cc}</span>`
               :r.split<1?'<span class="chip chip-g">👤 Sharon paid</span>':''}
+            ${r.recurring?'<span class="chip chip-r">🔁</span>':''}
           </div>
         </div>
         <div class="log-r">
@@ -1369,10 +1455,165 @@ function renderSharon(d){
       <div class="cr"><div class="camt green">${fmt(d.youOwe)}</div></div></div>`:''}`;
 }
 
+// ─── BUDGET ───────────────────────────────────────────────
+function renderBudget(d){
+  const summaryEl =document.getElementById('budget-summary');
+  const projEl    =document.getElementById('proj-card');
+  const catEl     =document.getElementById('budget-cat-card');
+  const recurEl   =document.getElementById('budget-recur-card');
+
+  const budgets=d.catBudgets||[];
+  const actuals=d.catShares||[];
+  const totalBudget=budgets.reduce((a,b)=>a+b,0);
+  const totalActual=actuals.reduce((a,b)=>a+b,0);
+  const totalRemaining=totalBudget-totalActual;
+  const overBudget=totalRemaining<0;
+
+  // ── Overview cards
+  if(summaryEl){
+    summaryEl.innerHTML=`
+      <div class="bsum-card plain">
+        <div class="bsum-lbl">Monthly Budget</div>
+        <div class="bsum-val">${fmt(totalBudget)}</div>
+        <div class="bsum-sub">${MONTHS[mi]}</div>
+      </div>
+      <div class="bsum-card ${overBudget?'warn':'good'}">
+        <div class="bsum-lbl">${overBudget?'Over Budget':'Remaining'}</div>
+        <div class="bsum-val" style="color:var(--${overBudget?'red':'green'})">${fmt(Math.abs(totalRemaining))}</div>
+        <div class="bsum-sub">${fmt(totalActual)} spent · ${totalBudget>0?((totalActual/totalBudget)*100).toFixed(0):'0'}% used</div>
+      </div>`;
+  }
+
+  // ── Projections
+  if(projEl){
+    const curMD=new Date(MDATES[mi]+'T00:00:00');
+    const curYear=curMD.getFullYear(), curMon=curMD.getMonth();
+    const daysInMonth=new Date(curYear,curMon+1,0).getDate();
+    const now=new Date();
+    const todayDay=(now.getFullYear()===curYear&&now.getMonth()===curMon)?now.getDate():daysInMonth;
+    const dailyAvg=todayDay>0?totalActual/todayDay:0;
+    const projMonthEnd=totalActual+dailyAvg*(daysInMonth-todayDay);
+    const projVsBudget=totalBudget-projMonthEnd;
+    const onTrack=projMonthEnd<=totalBudget;
+    const pctDone=Math.round((todayDay/daysInMonth)*100);
+
+    projEl.innerHTML=`
+      <div class="proj-row">
+        <span class="proj-lbl">Daily avg spend</span>
+        <span class="proj-val">${fmt(dailyAvg)}/day</span>
+      </div>
+      <div class="proj-row">
+        <span class="proj-lbl">Projected month-end</span>
+        <span class="proj-val ${onTrack?'green':'red'}">${fmt(projMonthEnd)}</span>
+      </div>
+      <div class="proj-row">
+        <span class="proj-lbl">Vs budget at month-end</span>
+        <span class="proj-val ${projVsBudget>=0?'green':'red'}">${projVsBudget>=0?'+':'-'}${fmt(Math.abs(projVsBudget))}</span>
+      </div>
+      <div class="proj-row">
+        <span class="proj-lbl">Month progress</span>
+        <span class="proj-val">${pctDone}% · Day ${todayDay} of ${daysInMonth}</span>
+      </div>`;
+  }
+
+  // ── Per-category budget vs actual
+  if(catEl){
+    let html='';
+    CATS.forEach((cat,i)=>{
+      const actual=actuals[i]||0;
+      const budget=budgets[i]||0;
+      if(budget===0&&actual===0) return;
+      const col=CAT_COL[cat]||'#6366f1';
+      const ico=CAT_ICON[cat]||'📦';
+      const fillPct=budget>0?Math.min(actual/budget,1)*100:0;
+      const over=budget>0&&actual>budget;
+      const remaining=budget-actual;
+      const usedPct=budget>0?((actual/budget)*100).toFixed(0)+'%':'—';
+      const statusTxt=over
+        ?`${fmt(actual-budget)} over budget`
+        :remaining>0?`${fmt(remaining)} remaining`:'at budget';
+
+      html+=`<div class="bcat-row">
+        <div class="bcat-icon" style="background:${col}20">${ico}</div>
+        <div class="bcat-mid">
+          <div class="bcat-name">${cat}</div>
+          <div class="bcat-bar">
+            <div class="bcat-fill" style="width:${fillPct.toFixed(1)}%;background:${over?'var(--red)':col}"></div>
+          </div>
+          <div class="bcat-status${over?' over':''}">${statusTxt} · ${usedPct} used</div>
+        </div>
+        <div class="bcat-right">
+          <div class="bcat-actual">${fmt(actual)}</div>
+          <div class="bcat-budget" onclick="editBudget(${i},this)" title="Tap to edit">
+            <span>🎯 ${fmt(budget)}</span>
+          </div>
+        </div>
+      </div>`;
+    });
+    if(!html) html='<div class="empty"><div class="empty-icon">🎯</div><div class="empty-text">No budget data yet</div><div class="empty-sub">Add budget amounts to column F in your sheet</div></div>';
+    else html+='<div class="budget-edit-hint">Tap 🎯 amount to edit budget</div>';
+    catEl.innerHTML=html;
+  }
+
+  // ── Recurring expenses
+  if(recurEl){
+    const recRows=(d.logRows||[]).filter(r=>r.recurring);
+    if(recRows.length){
+      const recurTotal=recRows.reduce((a,r)=>a+r.share,0);
+      let html=`<div class="lcard-hdr"><span>🔁 Recurring</span><b>${fmt(recurTotal)}/mo</b></div>`;
+      recRows.forEach(r=>{
+        const col=CAT_COL[r.cat]||'#6366f1';
+        const ico=CAT_ICON[r.cat]||'📦';
+        html+=`<div class="crow">
+          <div class="ci" style="background:${col}20">${ico}</div>
+          <div class="cm"><div class="cn">${r.desc}</div><div class="cpct">${r.cat}${r.cc?' · '+r.cc:''}</div></div>
+          <div class="cr"><div class="camt">${fmt(r.share)}</div></div>
+        </div>`;
+      });
+      recurEl.innerHTML=html;
+    } else {
+      recurEl.innerHTML='<div class="empty"><div class="empty-icon">🔁</div><div class="empty-text">No recurring expenses</div><div class="empty-sub">Check the Recurring box when adding, or mark TRUE in column S of your sheet</div></div>';
+    }
+  }
+}
+
+async function editBudget(catIdx,el){
+  if(el.querySelector('input')) return;
+  const cached=cache[MONTHS[mi]];
+  const currentBudget=cached?.catBudgets?.[catIdx]||0;
+  const oldHtml=el.innerHTML;
+  el.innerHTML=`<input class="bcat-budget-input" type="number" value="${currentBudget}" step="1" min="0" placeholder="Budget $">`;
+  const inp=el.querySelector('input');
+  inp.focus(); inp.select();
+
+  async function save(){
+    const val=Math.max(0,parseFloat(inp.value)||0);
+    el.innerHTML=`<span>🎯 ${fmt(val)}</span>`;
+    if(cached) cached.catBudgets[catIdx]=val;
+    if(token&&cfg){
+      const row=12+catIdx;
+      const range=`'${MONTHS[mi]}'!F${row}`;
+      const ok=await sheetsAppend(range,[[val]]);
+      if(ok) toast('Budget saved ✓','#059669');
+      else   toast('Save failed — check connection','#ef4444');
+    } else {
+      toast('Not connected to Google Sheet','#ef4444');
+    }
+    // Re-render summary cards with updated value
+    if(cached) renderBudget(cached);
+  }
+
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter') inp.blur();
+    if(e.key==='Escape'){el.innerHTML=oldHtml;}
+  });
+  inp.addEventListener('blur',save,{once:true});
+}
+
 // ─── NAV ──────────────────────────────────────────────────
 function nav(v){
   curView=v;
-  ['dash','log','invest','sharon','settings'].forEach(id=>{
+  ['dash','log','budget','invest','sharon','settings'].forEach(id=>{
     document.getElementById('p-'+id).classList.toggle('active',id===v);
     document.getElementById('bn-'+id).classList.toggle('active',id===v);
   });
@@ -1407,6 +1648,7 @@ function openAdd(){
   document.getElementById('f-split').value='100';
   document.getElementById('f-notes').value='';
   document.getElementById('f-cc').value='';
+  document.getElementById('f-recurring').checked=false;
   calcPrev();
   document.getElementById('add-overlay').classList.add('open');
   setTimeout(()=>document.getElementById('f-desc').focus(),350);
@@ -1423,17 +1665,18 @@ async function saveExpense(){
   const cc   =document.getElementById('f-cc').value;
   const total=parseFloat(document.getElementById('f-total').value)||0;
   const split=parseFloat(document.getElementById('f-split').value)/100;
-  const notes=document.getElementById('f-notes').value;
+  const notes    =document.getElementById('f-notes').value;
+  const recurring=document.getElementById('f-recurring').checked?'TRUE':'';
   if(!desc||!total){toast('Enter description and amount','#ef4444');return;}
   const share=+(total*split).toFixed(2);
   const mn=MONTHS[mi];
-  const row=[[date,desc,cat,cc,total,split,share,notes]];
+  const row=[[date,desc,cat,cc,total,split,share,notes,recurring]];
   closeOverlay('add-overlay');
   toast('Saving...','#1d4ed8');
   if(token){
     const emptyRow=await findNextEmptyRow(mn);
     if(!emptyRow){toast('Log is full (max 120 entries)','#ef4444');return;}
-    const range=`'${mn}'!K${emptyRow}:R${emptyRow}`;
+    const range=`'${mn}'!K${emptyRow}:S${emptyRow}`;
     const ok=await sheetsAppend(range,row);
     if(ok){toast('Saved to Google Sheet ✓','#059669');invalidate(MONTHS[mi]);setTimeout(loadData,1500);}
     else{toast('Save failed — check connection','#ef4444');}
