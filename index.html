@@ -1590,7 +1590,7 @@ function renderBudget(d){
   // ── Overview cards
   const income   = d.income   || 0;
   const adjRent  = d.adjRent  || 0;
-  const discretionary = Math.max(income - adjRent, 0);
+  const discretionary = Math.max(income - adjRent - (d.invested||0), 0);
   const spentPctOfDisc = discretionary > 0
     ? ((totalActual / discretionary) * 100).toFixed(1)
     : '—';
@@ -1611,7 +1611,7 @@ function renderBudget(d){
       <div class="bsum-card ${parseFloat(spentPctOfDisc)>80?'warn':'good'}" style="grid-column:1/-1">
         <div class="bsum-lbl">Spending as % of Income After Rent</div>
         <div class="bsum-val" style="color:var(--${parseFloat(spentPctOfDisc)>80?'red':'green'})">${spentPctOfDisc}%</div>
-        <div class="bsum-sub">${fmt(totalActual)} spent of ${fmt(discretionary)} discretionary · ${fmt(discRemaining)} remaining</div>
+        <div class="bsum-sub">${fmt(totalActual)} spent of ${fmt(discretionary)} free · after rent + invest</div>
       </div>`;
   }
 
