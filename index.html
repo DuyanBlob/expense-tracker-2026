@@ -721,6 +721,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
     </div>
     <button class="sbtn" onclick="saveConfig()">Connect to Google Sheet</button>
     <button class="sbtn ghost" onclick="exportCSV()">⬇ Export CSV</button>
+    <button class="sbtn ghost" onclick="syncTravelCategory()" style="margin-top:10px">✈️ Add Travel Category to Sheet</button>
     <div class="pb"></div>
   </div>
 
@@ -756,7 +757,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
             <option>Groceries</option><option>Utilities</option><option>Gas / Transport</option>
             <option>Dining / Takeout</option><option>Entertainment</option><option>Health</option>
             <option>Shopping</option><option>Subscriptions</option><option>Cash</option>
-            <option>Personal / Misc</option><option>Other</option>
+            <option>Personal / Misc</option><option>Travel</option><option>Other</option>
           </select></div>
         <div class="mfg"><label>Credit Card</label>
           <select id="f-cc">
@@ -791,7 +792,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 // ─── CONSTANTS ────────────────────────────────────────────
 const MONTHS = ['Apr 2026','May 2026','Jun 2026','Jul 2026','Aug 2026','Sep 2026','Oct 2026','Nov 2026','Dec 2026'];
 const MDATES = ['2026-04-01','2026-05-01','2026-06-01','2026-07-01','2026-08-01','2026-09-01','2026-10-01','2026-11-01','2026-12-01'];
-const CATS   = ['Groceries','Utilities','Gas / Transport','Dining / Takeout','Entertainment','Health','Shopping','Subscriptions','Cash','Personal / Misc','Other'];
+const CATS   = ['Groceries','Utilities','Gas / Transport','Dining / Takeout','Entertainment','Health','Shopping','Subscriptions','Cash','Personal / Misc','Travel'];
 const CCS    = ['CFF','CFU','CSP','Discover','Citi','Capital One','WF','Amazon Card','Robinhood','Cash','Other'];
 
 // Category icons — distinct emoji per category
@@ -806,13 +807,14 @@ const CAT_ICON = {
   'Subscriptions':   '📺',
   'Cash':            '💵',
   'Personal / Misc': '🧴',
-  'Other':           '📦',
+  'Travel':          '✈️',
+  'Other':           '📦',  // kept for backward-compat with old log entries
 };
 const CAT_COL = {
   'Groceries':'#22c55e','Utilities':'#eab308','Gas / Transport':'#3b82f6',
   'Dining / Takeout':'#f97316','Entertainment':'#a855f7','Health':'#ec4899',
   'Shopping':'#14b8a6','Subscriptions':'#6366f1','Cash':'#64748b',
-  'Personal / Misc':'#78716c','Other':'#94a3b8',
+  'Personal / Misc':'#78716c','Travel':'#0ea5e9','Other':'#94a3b8',
 };
 
 // Credit card icons — unique emoji + brand color per card
@@ -1867,6 +1869,29 @@ async function saveExpense(){
     else{toast('Save failed — check connection','#ef4444');}
   } else {
     toast('Not connected to Google Sheet','#ef4444');
+  }
+}
+
+// ─── SYNC TRAVEL CATEGORY TO SHEET ───────────────────────
+async function syncTravelCategory(){
+  if(!token||!cfg){ toast('Connect to Google Sheet first','#ef4444'); return; }
+  toast('Updating sheet…','#1d4ed8');
+  // Row 22 in each monthly tab = "Other" category slot → rename to Travel
+  // A22 = category label, D22 = SUMIFS formula for Your Share $
+  const TRAVEL_FORMULA = '=SUMIFS($Q$12:$Q$131,$M$12:$M$131,"Travel")';
+  let errors = 0;
+  for(const mn of MONTHS){
+    const ok1 = await sheetsAppend(`'${mn}'!A22`, [['Travel']]);
+    const ok2 = await sheetsAppend(`'${mn}'!D22`, [[TRAVEL_FORMULA]]);
+    if(!ok1||!ok2) errors++;
+  }
+  if(errors===0){
+    toast('✈️ Travel category added to all monthly tabs ✓','#059669');
+    // Invalidate all caches so the renamed category loads fresh
+    MONTHS.forEach(mn=>invalidate(mn));
+    loadData();
+  } else {
+    toast(`Done with ${errors} error(s) — check sheet manually`,'#f59e0b');
   }
 }
 
