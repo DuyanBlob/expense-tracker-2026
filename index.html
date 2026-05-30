@@ -757,7 +757,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
             <option>Groceries</option><option>Utilities</option><option>Gas / Transport</option>
             <option>Dining / Takeout</option><option>Entertainment</option><option>Health</option>
             <option>Shopping</option><option>Subscriptions</option><option>Cash</option>
-            <option>Personal / Misc</option><option>Travel</option><option>Other</option>
+            <option>Personal / Misc</option><option>Other</option><option>Travel</option>
           </select></div>
         <div class="mfg"><label>Credit Card</label>
           <select id="f-cc">
@@ -792,7 +792,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 // ─── CONSTANTS ────────────────────────────────────────────
 const MONTHS = ['Apr 2026','May 2026','Jun 2026','Jul 2026','Aug 2026','Sep 2026','Oct 2026','Nov 2026','Dec 2026'];
 const MDATES = ['2026-04-01','2026-05-01','2026-06-01','2026-07-01','2026-08-01','2026-09-01','2026-10-01','2026-11-01','2026-12-01'];
-const CATS   = ['Groceries','Utilities','Gas / Transport','Dining / Takeout','Entertainment','Health','Shopping','Subscriptions','Cash','Personal / Misc','Travel'];
+const CATS   = ['Groceries','Utilities','Gas / Transport','Dining / Takeout','Entertainment','Health','Shopping','Subscriptions','Cash','Personal / Misc','Other','Travel'];
 const CCS    = ['CFF','CFU','CSP','Discover','Citi','Capital One','WF','Amazon Card','Robinhood','Cash','Other'];
 
 // Category icons — distinct emoji per category
@@ -957,7 +957,7 @@ async function loadData(){
   const mn=MONTHS[mi];
   const ranges=[
     `'${mn}'!D6:H9`,
-    `'${mn}'!D12:F26`,       // extended to col F for Budget $
+    `'${mn}'!D12:F27`,       // rows 12-27: 12 cats + adjRent + invest + totalOut + leftover
     `'${mn}'!D29:D40`,
     `'${mn}'!D44:F52`,
     `'${mn}'!D56:D71`,
@@ -989,9 +989,10 @@ async function loadData(){
   const catShares  =CATS.map((_,i)=>g(CAT,i,0));
   const catPcts    =CATS.map((_,i)=>gp(CAT,i,1));
   const catBudgets =CATS.map((_,i)=>g(CAT,i,2)); // col F = Budget $
-  const adjRent    =g(CAT,11,0); const adjRentPct =gp(CAT,11,1);
-  const invested   =g(CAT,12,0); const investPct  =gp(CAT,12,1);
-  const leftover   =g(CAT,14,0); const leftoverPct=gp(CAT,14,1);
+  // 12 categories (rows 12-23) → adjRent at index 12 (row 24), invested at 13 (row 25), leftover at 15 (row 27)
+  const adjRent    =g(CAT,12,0); const adjRentPct =gp(CAT,12,1);
+  const invested   =g(CAT,13,0); const investPct  =gp(CAT,13,1);
+  const leftover   =g(CAT,15,0); const leftoverPct=gp(CAT,15,1);
 
   const CC=vr[2].values||[];
   const ccAmts=CCS.map((_,i)=>g(CC,i,0));
@@ -1876,14 +1877,13 @@ async function saveExpense(){
 async function syncTravelCategory(){
   if(!token||!cfg){ toast('Connect to Google Sheet first','#ef4444'); return; }
   toast('Updating sheet…','#1d4ed8');
-  // Row 22 in each monthly tab = "Other" category slot → rename to Travel
-  // A22 = category label, D22 = SUMIFS formula for Your Share $
-  const TRAVEL_FORMULA = '=SUMIFS($Q$12:$Q$131,$M$12:$M$131,"Travel")';
+  // Travel is at row 23 (B23=label, D23=SUMIF formula) — already set up in sheet
+  // This button just verifies / repairs the formula if needed
+  const TRAVEL_FORMULA = '=SUMIF($M$12:$M$131,B23,$Q$12:$Q$131)';
   let errors = 0;
   for(const mn of MONTHS){
-    const ok1 = await sheetsAppend(`'${mn}'!A22`, [['Travel']]);
-    const ok2 = await sheetsAppend(`'${mn}'!D22`, [[TRAVEL_FORMULA]]);
-    if(!ok1||!ok2) errors++;
+    const ok = await sheetsAppend(`'${mn}'!D23`, [[TRAVEL_FORMULA]]);
+    if(!ok) errors++;
   }
   if(errors===0){
     toast('✈️ Travel category added to all monthly tabs ✓','#059669');
