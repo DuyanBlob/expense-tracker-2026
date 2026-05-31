@@ -1851,7 +1851,16 @@ async function saveExpense(){
   const recurring=document.getElementById('f-recurring').checked?'TRUE':'';
   if(!desc||!total){toast('Enter description and amount','#ef4444');return;}
   const share=+(total*split).toFixed(2);
-  const mn=MONTHS[mi];
+
+  // Determine which month tab to write to based on the expense date
+  let mn=MONTHS[mi]; // default to currently viewed month
+  if(date){
+    const ed=new Date(date+'T00:00:00');
+    const key=`${ed.getFullYear()}-${String(ed.getMonth()+1).padStart(2,'0')}`;
+    const found=MDATES.findIndex(d=>d.startsWith(key));
+    if(found>=0) mn=MONTHS[found];
+  }
+
   const row=[[date,desc,cat,cc,total,split,share,notes,recurring]];
   closeOverlay('add-overlay');
   toast('Saving…','#1d4ed8');
@@ -1866,8 +1875,13 @@ async function saveExpense(){
     }
     const range=`'${mn}'!K${targetRow}:S${targetRow}`;
     const ok=await sheetsAppend(range,row);
-    if(ok){toast('Saved ✓','#059669');invalidate(MONTHS[mi]);setTimeout(loadData,1500);}
-    else{toast('Save failed — check connection','#ef4444');}
+    if(ok){
+      toast(`Saved to ${mn} ✓`,'#059669');
+      invalidate(mn);
+      setTimeout(loadData,1500);
+    } else {
+      toast('Save failed — check connection','#ef4444');
+    }
   } else {
     toast('Not connected to Google Sheet','#ef4444');
   }
