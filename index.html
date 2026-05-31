@@ -958,9 +958,9 @@ async function loadData(){
   const ranges=[
     `'${mn}'!D6:H9`,
     `'${mn}'!D12:F27`,       // rows 12-27: 12 cats + adjRent + invest + totalOut + leftover
-    `'${mn}'!D29:D40`,
-    `'${mn}'!D44:F52`,
-    `'${mn}'!D56:D71`,
+    `'${mn}'!D30:D41`,       // CC: row 29=header, data rows 30-40, total row 41
+    `'${mn}'!D45:F53`,       // Investments: row 44=header, data rows 45-53
+    `'${mn}'!D57:D72`,       // Summary/Sharon: section shifted +1 vs old sheet
     `'${mn}'!J12:S${ROWS.logEnd}`, // extended to col S for Recurring
   ];
   // Main load — no previous month here so a missing tab can't break everything
