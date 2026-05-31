@@ -721,7 +721,6 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
     </div>
     <button class="sbtn" onclick="saveConfig()">Connect to Google Sheet</button>
     <button class="sbtn ghost" onclick="exportCSV()">⬇ Export CSV</button>
-    <button class="sbtn ghost" onclick="syncTravelCategory()" style="margin-top:10px">✈️ Add Travel Category to Sheet</button>
     <div class="pb"></div>
   </div>
 
@@ -1349,10 +1348,12 @@ function renderDash(d){
   lc.className='bigcard '+(d.leftover<0?'red':'green');
   document.getElementById('h-left').className='bc-val '+(d.leftover<0?'red':'green');
 
-  // Spending breakdown
+  // Spending breakdown — use map(c,i) so Travel's original index is preserved
   const maxS=Math.max(...d.catShares,d.adjRent,1);
-  let html=CATS.filter((_,i)=>d.catShares[i]>0).map((_,i)=>{
-    const c=CATS[i],sh=d.catShares[i],col=CAT_COL[c]||'#6366f1',bw=Math.round((sh/maxS)*100);
+  let html=CATS.map((c,i)=>{
+    const sh=d.catShares[i];
+    if(!sh||sh<=0) return '';
+    const col=CAT_COL[c]||'#6366f1',bw=Math.round((sh/maxS)*100);
     return`<div class="crow">
       <div class="ci" style="background:${col}22">${CAT_ICON[c]||'📦'}</div>
       <div class="cm"><div class="cn">${c}</div>
@@ -1656,7 +1657,6 @@ function renderBudget(d){
     CATS.forEach((cat,i)=>{
       const actual=actuals[i]||0;
       const budget=budgets[i]||0;
-      if(budget===0&&actual===0) return;
       const col=CAT_COL[cat]||'#6366f1';
       const ico=CAT_ICON[cat]||'📦';
       const fillPct=budget>0?Math.min(actual/budget,1)*100:0;
@@ -1870,28 +1870,6 @@ async function saveExpense(){
     else{toast('Save failed — check connection','#ef4444');}
   } else {
     toast('Not connected to Google Sheet','#ef4444');
-  }
-}
-
-// ─── SYNC TRAVEL CATEGORY TO SHEET ───────────────────────
-async function syncTravelCategory(){
-  if(!token||!cfg){ toast('Connect to Google Sheet first','#ef4444'); return; }
-  toast('Updating sheet…','#1d4ed8');
-  // Travel is at row 23 (B23=label, D23=SUMIF formula) — already set up in sheet
-  // This button just verifies / repairs the formula if needed
-  const TRAVEL_FORMULA = '=SUMIF($M$12:$M$131,B23,$Q$12:$Q$131)';
-  let errors = 0;
-  for(const mn of MONTHS){
-    const ok = await sheetsAppend(`'${mn}'!D23`, [[TRAVEL_FORMULA]]);
-    if(!ok) errors++;
-  }
-  if(errors===0){
-    toast('✈️ Travel category added to all monthly tabs ✓','#059669');
-    // Invalidate all caches so the renamed category loads fresh
-    MONTHS.forEach(mn=>invalidate(mn));
-    loadData();
-  } else {
-    toast(`Done with ${errors} error(s) — check sheet manually`,'#f59e0b');
   }
 }
 
