@@ -676,8 +676,6 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
     <div class="proj-card" id="proj-card"></div>
     <div class="slbl">Budget vs Actual</div>
     <div class="lcard" id="budget-cat-card"></div>
-    <div class="slbl">Recurring Expenses</div>
-    <div class="lcard" id="budget-recur-card"></div>
     <div class="pb"></div>
   </div>
 
@@ -1582,7 +1580,6 @@ function renderBudget(d){
   const summaryEl =document.getElementById('budget-summary');
   const projEl    =document.getElementById('proj-card');
   const catEl     =document.getElementById('budget-cat-card');
-  const recurEl   =document.getElementById('budget-recur-card');
 
   const budgets=d.catBudgets||[];
   const actuals=d.catShares||[];
@@ -1689,26 +1686,6 @@ function renderBudget(d){
     catEl.innerHTML=html;
   }
 
-  // ── Recurring expenses
-  if(recurEl){
-    const recRows=(d.logRows||[]).filter(r=>r.recurring);
-    if(recRows.length){
-      const recurTotal=recRows.reduce((a,r)=>a+r.share,0);
-      let html=`<div class="lcard-hdr"><span>🔁 Recurring</span><b>${fmt(recurTotal)}/mo</b></div>`;
-      recRows.forEach(r=>{
-        const col=CAT_COL[r.cat]||'#6366f1';
-        const ico=CAT_ICON[r.cat]||'📦';
-        html+=`<div class="crow">
-          <div class="ci" style="background:${col}20">${ico}</div>
-          <div class="cm"><div class="cn">${r.desc}</div><div class="cpct">${r.cat}${r.cc?' · '+r.cc:''}</div></div>
-          <div class="cr"><div class="camt">${fmt(r.share)}</div></div>
-        </div>`;
-      });
-      recurEl.innerHTML=html;
-    } else {
-      recurEl.innerHTML='<div class="empty"><div class="empty-icon">🔁</div><div class="empty-text">No recurring expenses</div><div class="empty-sub">Check the Recurring box when adding, or mark TRUE in column S of your sheet</div></div>';
-    }
-  }
 }
 
 async function editBudget(catIdx,el){
