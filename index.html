@@ -815,27 +815,38 @@ const CAT_COL = {
 };
 
 // Credit card icons — unique emoji + brand color per card
+// Inline SVG brand logos — used wherever CC icons appear
+const _ccLogo = {
+  chase: `<svg viewBox="0 0 40 40" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="7" fill="#117ACA"/><path fill="white" d="M20,6L34,6L34,20L27,20L27,13L20,13ZM34,20L34,34L20,34L20,27L27,27L27,20ZM20,34L6,34L6,20L13,20L13,27L20,27ZM6,20L6,6L20,6L20,13L13,13L13,20Z"/></svg>`,
+  wf:    `<svg viewBox="0 0 40 40" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="8" fill="#D41B2C"/><text x="20" y="17" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="9" fill="white">WELLS</text><text x="20" y="29" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="9" fill="white">FARGO</text></svg>`,
+  citi:  `<svg viewBox="0 0 40 40" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="7" fill="#004B87"/><path d="M11,17Q20,8,29,17" stroke="#D9001B" stroke-width="3.5" fill="none" stroke-linecap="round"/><text x="20" y="29" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="white">citi</text></svg>`,
+  disc:  `<svg viewBox="0 0 40 40" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="7" fill="#1B1B50"/><circle cx="29" cy="29" r="13" fill="#F76D20"/><text x="20" y="18" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="6.5" fill="white">DISCOVER</text></svg>`,
+  cap1:  `<svg viewBox="0 0 40 40" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="7" fill="white"/><path fill="#CC0000" d="M30,4C39,13,39,27,30,36C26,30,25,25,25,20C25,15,26,10,30,4Z"/></svg>`,
+  rhood: `<svg viewBox="0 0 40 40" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="7" fill="#00C896"/><path fill="white" d="M27,9C32,10,33,17,28,22L24,26L23,33L21,33L22,27L13,31L14,26L12,28L15,22L18,22L21,18C15,15,15,9,21,9Q24,8,27,9Z"/><line x1="15" y1="23" x2="28" y2="12" stroke="#00C896" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+  amzn:  `<svg viewBox="0 0 40 40" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="7" fill="white"/><text x="20" y="27" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="22" fill="#1A1A1A">a</text><path d="M9,32Q20,39,31,32" stroke="#FF9900" stroke-width="2.5" fill="none" stroke-linecap="round"/><polygon points="29,30 33,32 30,34" fill="#FF9900"/></svg>`,
+};
+
 const CC_ICON = {
-  'CFF':         '⚡',   // Chase Freedom Flex  — lightning
-  'CFU':         '🔄',   // Chase Freedom Unlimited — refresh/unlimited
-  'CSP':         '💎',   // Chase Sapphire Preferred — sapphire gem
-  'Discover':    '🔶',   // Discover — orange diamond
-  'Citi':        '🏙️',  // Citi — city skyline
-  'Capital One': '🦅',   // Capital One — eagle
-  'WF':          '🐎',   // Wells Fargo — horse/stagecoach
-  'Amazon Card': '📦',   // Amazon — package
-  'Robinhood':   '🐦',   // Robinhood — bird
-  'Cash':        '💵',   // Cash — dollar bill
-  'Other':       '💳',   // Other — generic card
+  'CFF':         _ccLogo.chase,
+  'CFU':         _ccLogo.chase,
+  'CSP':         _ccLogo.chase,
+  'Discover':    _ccLogo.disc,
+  'Citi':        _ccLogo.citi,
+  'Capital One': _ccLogo.cap1,
+  'WF':          _ccLogo.wf,
+  'Amazon Card': _ccLogo.amzn,
+  'Robinhood':   _ccLogo.rhood,
+  'Cash':        '💵',
+  'Other':       '💳',
 };
 const CC_COL = {
-  'CFF':         '#2563eb',  // Chase blue
-  'CFU':         '#1d4ed8',  // Chase blue deep
-  'CSP':         '#0891b2',  // Sapphire teal
-  'Discover':    '#ea580c',  // Discover orange
-  'Citi':        '#0284c7',  // Citi blue
-  'Capital One': '#dc2626',  // Capital One red
-  'WF':          '#b45309',  // Wells Fargo gold
+  'CFF':         '#117ACA',  // Chase blue
+  'CFU':         '#117ACA',  // Chase blue
+  'CSP':         '#117ACA',  // Chase blue
+  'Discover':    '#F76D20',  // Discover orange
+  'Citi':        '#004B87',  // Citi blue
+  'Capital One': '#CC0000',  // Capital One red
+  'WF':          '#D41B2C',  // Wells Fargo red
   'Amazon Card': '#c2410c',  // Amazon orange-red
   'Robinhood':   '#16a34a',  // Robinhood green
   'Cash':        '#15803d',  // Cash green
@@ -1390,8 +1401,9 @@ function renderDash(d){
       const i=CCS.indexOf(c);
       const col=CC_COL[c]||'#6b7280';
       const ico=CC_ICON[c]||'💳';
+      const isSvg=ico.startsWith('<svg');
       return`<div class="crow">
-        <div class="ci" style="background:${col}22;font-size:17px">${ico}</div>
+        <div class="ci" style="${isSvg?'':'background:'+col+'22;font-size:17px'}">${ico}</div>
         <div class="cm"><div class="cn" style="font-weight:600">${c}</div></div>
         <div class="cr"><div class="camt" style="color:${col}">${fmt(d.ccAmts[i])}</div></div>
       </div>`;
@@ -1464,6 +1476,7 @@ function renderLog(allRows){
     const ico  =CAT_ICON[r.cat]||'📦';
     const ccCol=CC_COL[r.cc]||'#476088';
     const ccIco=CC_ICON[r.cc]||'💳';
+    const ccIsSvg=ccIco.startsWith('<svg');
     const rd   =JSON.stringify({sheetRow:r.sheetRow,date:r.date,desc:r.desc,cat:r.cat,cc:r.cc,total:r.total,split:r.split,notes:r.notes,recurring:r.recurring}).replace(/"/g,'&quot;');
     return`<div class="logrow${r.pre?' pre':''}" onclick="toggleRowActions(event,this)">
       <div style="display:flex;align-items:center;gap:13px">
@@ -1472,7 +1485,7 @@ function renderLog(allRows){
           <div class="log-desc">${r.desc}</div>
           <div class="log-chips">
             <span class="chip chip-b">${ico} ${r.cat}</span>
-            ${r.cc?`<span class="cc-chip" style="background:${ccCol}18;color:${ccCol}">${ccIco} ${r.cc}</span>`:r.split<1?'<span class="chip chip-g">👤 Sharon paid</span>':''}
+            ${r.cc?`<span class="cc-chip" style="background:${ccCol}18;color:${ccCol};display:inline-flex;align-items:center;gap:3px">${ccIsSvg?`<span style="display:flex;align-items:center">${ccIco}</span>`:ccIco} ${r.cc}</span>`:r.split<1?'<span class="chip chip-g">👤 Sharon paid</span>':''}
             ${r.recurring?'<span class="chip chip-r">🔁</span>':''}
           </div>
         </div>
