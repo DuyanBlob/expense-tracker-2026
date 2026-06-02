@@ -815,36 +815,24 @@ const CAT_COL = {
 };
 
 // Credit card icons — unique emoji + brand color per card
-// Brand logo SVGs — inline, no external dependencies
-const _ccLogo = {
-  // Chase: blue square, white octagon pinwheel (4 rotated L-shapes, open center)
-  chase: `<svg viewBox="0 0 40 40" width="26" height="26" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="6" fill="#117ACA"/><path fill="white" d="M20,4L4,4L4,20L12,20L12,12L20,12Z M36,4L20,4L20,12L28,12L28,20L36,20Z M36,36L36,20L28,20L28,28L20,28L20,36Z M4,36L20,36L20,28L12,28L12,20L4,20Z"/></svg>`,
-  // Wells Fargo: red, gold divider, WF + brand name
-  wf:    `<svg viewBox="0 0 40 40" width="26" height="26" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="6" fill="#CC0000"/><text x="20" y="17" text-anchor="middle" font-family="Georgia,serif" font-weight="bold" font-size="13" fill="white">WF</text><line x1="8" y1="22" x2="32" y2="22" stroke="#FFD700" stroke-width="1.5"/><text x="20" y="31" text-anchor="middle" font-family="Arial,sans-serif" font-size="6.5" fill="white">WELLS FARGO</text></svg>`,
-  // Citi: dark blue, red arc, citi text
-  citi:  `<svg viewBox="0 0 40 40" width="26" height="26" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="6" fill="#003B70"/><path d="M12,18Q20,9,28,18" stroke="#E31837" stroke-width="3.5" fill="none" stroke-linecap="round"/><text x="20" y="30" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" fill="white">citi</text></svg>`,
-  // Discover: navy, orange sunrise from bottom, DISCOVER text
-  disc:  `<svg viewBox="0 0 40 40" width="26" height="26" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="6" fill="#231F4F"/><ellipse cx="20" cy="42" rx="17" ry="14" fill="#F76D20"/><text x="20" y="18" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="6.8" fill="white">DISCOVER</text></svg>`,
-  // Capital One: white, red crescent swoosh on right
-  cap1:  `<svg viewBox="0 0 40 40" width="26" height="26" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="6" fill="white"/><path fill="#CC0000" d="M30,4C40,13,40,27,30,36L26,32C34,24,34,16,26,8Z"/></svg>`,
-  // Robinhood: green, white feather with green vane cut
-  rhood: `<svg viewBox="0 0 40 40" width="26" height="26" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="6" fill="#00C896"/><path fill="white" d="M27,8C33,10,34,19,28,24L24,27L23,34L21,34L22,28L13,32L14,27L12,28L15,23L18,23L21,19C15,16,15,10,20,9Q23,8,27,8Z"/><line x1="15" y1="23" x2="28" y2="11" stroke="#00C896" stroke-width="2.2" stroke-linecap="round"/></svg>`,
-  // Amazon: dark bg, white a, orange smile arrow
-  amzn:  `<svg viewBox="0 0 40 40" width="26" height="26" xmlns="http://www.w3.org/2000/svg"><rect width="40" height="40" rx="6" fill="#232F3E"/><text x="20" y="26" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="20" fill="white">a</text><path d="M11,32Q20,38,29,32" stroke="#FF9900" stroke-width="2.5" fill="none" stroke-linecap="round"/><polygon points="27,30 30,33 27,34" fill="#FF9900"/></svg>`,
+// CC_ICON: emoji only — used in <option> dropdowns and plain-text chips
+const CC_ICON = {
+  'CFF':'⚡','CFU':'🔄','CSP':'💎','Discover':'🔶','Citi':'🏙️',
+  'Capital One':'🦅','WF':'🐎','Amazon Card':'📦','Robinhood':'🐦',
+  'Cash':'💵','Other':'💳',
 };
 
-const CC_ICON = {
-  'CFF':         _ccLogo.chase,
-  'CFU':         _ccLogo.chase,
-  'CSP':         _ccLogo.chase,
-  'Discover':    _ccLogo.disc,
-  'Citi':        _ccLogo.citi,
-  'Capital One': _ccLogo.cap1,
-  'WF':          _ccLogo.wf,
-  'Amazon Card': _ccLogo.amzn,
-  'Robinhood':   _ccLogo.rhood,
-  'Cash':        '💵',
-  'Other':       '💳',
+// CC_SVG: brand logo SVGs — used only in visual icon slots (.ci divs)
+const CC_SVG = {
+  'CFF':         `<svg viewBox="0 0 40 40" width="28" height="28"><rect width="40" height="40" rx="7" fill="#117ACA"/><path fill="white" d="M20,4L4,4L4,20L12,20L12,12L20,12Z M36,4L20,4L20,12L28,12L28,20L36,20Z M36,36L36,20L28,20L28,28L20,28L20,36Z M4,36L20,36L20,28L12,28L12,20L4,20Z"/></svg>`,
+  'CFU':         `<svg viewBox="0 0 40 40" width="28" height="28"><rect width="40" height="40" rx="7" fill="#117ACA"/><path fill="white" d="M20,4L4,4L4,20L12,20L12,12L20,12Z M36,4L20,4L20,12L28,12L28,20L36,20Z M36,36L36,20L28,20L28,28L20,28L20,36Z M4,36L20,36L20,28L12,28L12,20L4,20Z"/></svg>`,
+  'CSP':         `<svg viewBox="0 0 40 40" width="28" height="28"><rect width="40" height="40" rx="7" fill="#117ACA"/><path fill="white" d="M20,4L4,4L4,20L12,20L12,12L20,12Z M36,4L20,4L20,12L28,12L28,20L36,20Z M36,36L36,20L28,20L28,28L20,28L20,36Z M4,36L20,36L20,28L12,28L12,20L4,20Z"/></svg>`,
+  'Discover':    `<svg viewBox="0 0 40 40" width="28" height="28"><rect width="40" height="40" rx="7" fill="#231F4F"/><ellipse cx="20" cy="44" rx="18" ry="15" fill="#F76D20"/><text x="20" y="18" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="7" fill="white">DISCOVER</text></svg>`,
+  'Citi':        `<svg viewBox="0 0 40 40" width="28" height="28"><rect width="40" height="40" rx="7" fill="#003B70"/><path d="M11,17Q20,8,29,17" stroke="#E31837" stroke-width="4" fill="none" stroke-linecap="round"/><text x="20" y="30" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="white">citi</text></svg>`,
+  'Capital One': `<svg viewBox="0 0 40 40" width="28" height="28"><rect width="40" height="40" rx="7" fill="white"/><path fill="#CC0000" d="M30,4C40,13,40,27,30,36L26,32C34,24,34,16,26,8Z"/></svg>`,
+  'WF':          `<svg viewBox="0 0 40 40" width="28" height="28"><rect width="40" height="40" rx="7" fill="#CC0000"/><text x="20" y="18" text-anchor="middle" font-family="Georgia,serif" font-weight="bold" font-size="14" fill="white">WF</text><line x1="8" y1="23" x2="32" y2="23" stroke="#FFD700" stroke-width="1.5"/><text x="20" y="32" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" fill="white">WELLS FARGO</text></svg>`,
+  'Amazon Card': `<svg viewBox="0 0 40 40" width="28" height="28"><rect width="40" height="40" rx="7" fill="#232F3E"/><text x="20" y="26" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="21" fill="white">a</text><path d="M11,32Q20,38,29,32" stroke="#FF9900" stroke-width="2.5" fill="none" stroke-linecap="round"/><polygon points="27,30 30,33 27,35" fill="#FF9900"/></svg>`,
+  'Robinhood':   `<svg viewBox="0 0 40 40" width="28" height="28"><rect width="40" height="40" rx="7" fill="#00C896"/><path fill="white" d="M27,8C33,10,33,19,28,24L24,27L23,34L21,34L22,28L13,31L14,27L12,28L15,23L18,23L21,19C15,16,15,10,20,9Q23,8,27,8Z"/><line x1="15" y1="23" x2="28" y2="11" stroke="#00C896" stroke-width="2.2" stroke-linecap="round"/></svg>`,
 };
 const CC_COL = {
   'CFF':         '#117ACA',  // Chase blue
@@ -1407,10 +1395,10 @@ function renderDash(d){
     (usedCC.length ? usedCC.map(c=>{
       const i=CCS.indexOf(c);
       const col=CC_COL[c]||'#6b7280';
+      const svg=CC_SVG[c];
       const ico=CC_ICON[c]||'💳';
-      const isSvg=ico.startsWith('<svg');
       return`<div class="crow">
-        <div class="ci" style="${isSvg?'':'background:'+col+'22;font-size:17px'}">${ico}</div>
+        <div class="ci" style="${svg?'':'background:'+col+'22;font-size:17px'}">${svg||ico}</div>
         <div class="cm"><div class="cn" style="font-weight:600">${c}</div></div>
         <div class="cr"><div class="camt" style="color:${col}">${fmt(d.ccAmts[i])}</div></div>
       </div>`;
@@ -1437,8 +1425,8 @@ function renderLog(allRows){
   const usedCCs =[...new Set(allRows.map(r=>r.cc ).filter(Boolean))].sort();
 
   if(filterEl){
-    const catOpts=usedCats.map(c=>`<option value="${c}"${logFilterCat===c?' selected':''}>${CAT_ICON[c]||''} ${c}</option>`).join('');
-    const ccOpts =usedCCs .map(c=>`<option value="${c}"${logFilterCC ===c?' selected':''}>${CC_ICON[c] ||''} ${c}</option>`).join('');
+    const catOpts=usedCats.map(c=>`<option value="${c}"${logFilterCat===c?' selected':''}>${c}</option>`).join('');
+    const ccOpts =usedCCs .map(c=>`<option value="${c}"${logFilterCC ===c?' selected':''}>${c}</option>`).join('');
     filterEl.innerHTML=`<div class="lf-controls">
       <select class="lf-select${logFilterCat?' active':''}" onchange="setLogFilter('cat',this.value)">
         <option value="">All Categories</option>${catOpts}
@@ -1483,7 +1471,7 @@ function renderLog(allRows){
     const ico  =CAT_ICON[r.cat]||'📦';
     const ccCol=CC_COL[r.cc]||'#476088';
     const ccIco=CC_ICON[r.cc]||'💳';
-    const ccIsSvg=ccIco.startsWith('<svg');
+    const ccSvg=CC_SVG[r.cc];
     const rd   =JSON.stringify({sheetRow:r.sheetRow,date:r.date,desc:r.desc,cat:r.cat,cc:r.cc,total:r.total,split:r.split,notes:r.notes,recurring:r.recurring}).replace(/"/g,'&quot;');
     return`<div class="logrow${r.pre?' pre':''}" onclick="toggleRowActions(event,this)">
       <div style="display:flex;align-items:center;gap:13px">
@@ -1492,7 +1480,7 @@ function renderLog(allRows){
           <div class="log-desc">${r.desc}</div>
           <div class="log-chips">
             <span class="chip chip-b">${ico} ${r.cat}</span>
-            ${r.cc?`<span class="cc-chip" style="background:${ccCol}18;color:${ccCol};display:inline-flex;align-items:center;gap:3px">${ccIsSvg?`<span style="display:flex;align-items:center">${ccIco}</span>`:ccIco} ${r.cc}</span>`:r.split<1?'<span class="chip chip-g">👤 Sharon paid</span>':''}
+            ${r.cc?`<span class="cc-chip" style="background:${ccCol}18;color:${ccCol};display:inline-flex;align-items:center;gap:3px">${ccSvg?`<span style="display:flex;line-height:1">${ccSvg}</span>`:ccIco} ${r.cc}</span>`:r.split<1?'<span class="chip chip-g">👤 Sharon paid</span>':''}
             ${r.recurring?'<span class="chip chip-r">🔁</span>':''}
           </div>
         </div>
