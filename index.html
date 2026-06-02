@@ -1211,8 +1211,8 @@ function renderSpendChart(curRows,prevRows){
   const ty=parseFloat(yp(curCum[todayDay]).toFixed(1));
 
   const areaD=`M${xp(1).toFixed(1)},${yp(0).toFixed(1)} L${curPtsFull.join(' L')} L${xp(curDays).toFixed(1)},${yp(0).toFixed(1)} Z`;
-  const areaFill=`<path d="${areaD}" fill="url(#cg${mi})"/>`;
-  const curLine=`<polyline points="${curPtsFull.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const areaFill=isFutureMon?'':`<path d="${areaD}" fill="url(#cg${mi})"/>`;
+  const curLine=isFutureMon?'':`<polyline points="${curPtsFull.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
   const todayVline=isFutureMon?'': `<line x1="${tx}" y1="${CT}" x2="${tx}" y2="${CT+CH}" stroke="rgba(255,255,255,.12)" stroke-width="1"/>`;
   const todayDot=isFutureMon?'': `<circle cx="${tx}" cy="${ty}" r="3" fill="var(--bg2)" stroke="var(--accent)" stroke-width="1.8"/>
                   <circle cx="${tx}" cy="${ty}" r="1.3" fill="var(--accent)"/>`;
