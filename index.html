@@ -797,8 +797,8 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 // ─── CONSTANTS ────────────────────────────────────────────
-const MONTHS = ['Apr 2026','May 2026','Jun 2026','Jul 2026','Aug 2026','Sep 2026','Oct 2026','Nov 2026','Dec 2026'];
-const MDATES = ['2026-04-01','2026-05-01','2026-06-01','2026-07-01','2026-08-01','2026-09-01','2026-10-01','2026-11-01','2026-12-01'];
+const MONTHS = ['May 2026','Jun 2026','Jul 2026','Aug 2026','Sep 2026','Oct 2026','Nov 2026','Dec 2026'];
+const MDATES = ['2026-05-01','2026-06-01','2026-07-01','2026-08-01','2026-09-01','2026-10-01','2026-11-01','2026-12-01'];
 const CATS   = ['Groceries','Utilities','Gas / Transport','Dining / Takeout','Entertainment','Health','Shopping','Subscriptions','Cash','Personal / Misc','Other','Travel'];
 const CCS    = ['CFF','CFU','CSP','Discover','Citi','Capital One','WF','Amazon Card','Robinhood','Cash','Other'];
 
@@ -978,10 +978,14 @@ async function loadData(){
     `'${mn}'!J12:S${ROWS.logEnd}`, // extended to col S for Recurring
   ];
   // Fold the previous-month log into this same batch (one round-trip) — but only
-  // if it isn't already cached. All Apr–Nov tabs exist, so the range is always valid.
+  // if it isn't already cached.
   const prevCached = mi>0 && isCached(MONTHS[mi-1]);
-  if(mi>0 && !prevCached) ranges.push(`'${MONTHS[mi-1]}'!J12:R${ROWS.logEnd}`);
-  const vr=await sheetsBatchGet(ranges);
+  const wantPrev   = mi>0 && !prevCached;
+  if(wantPrev) ranges.push(`'${MONTHS[mi-1]}'!J12:R${ROWS.logEnd}`);
+  let vr=await sheetsBatchGet(ranges);
+  // If the batch failed and we appended a prev-month range, that tab may not exist
+  // (e.g. the very first month). Retry once with just the current month so it loads.
+  if(!vr && wantPrev){ ranges.pop(); vr=await sheetsBatchGet(ranges); }
   if(!vr){ loading=false; toast('Could not load data — check connection','#ef4444'); return; }
 
   const g=(a,r,c)=>{
