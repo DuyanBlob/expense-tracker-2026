@@ -1173,23 +1173,21 @@ function renderSpendChart(curRows,prevRows){
   const curPts=[];
   for(let d=1;d<=stopDay;d++) curPts.push(`${xp(d).toFixed(1)},${yp(curCum[d]).toFixed(1)}`);
 
-  // Need ≥2 pts for a line, but ≥1 pt is enough for a dot + scrubber
-  const hasLine = curPts.length >= 2;
-  const hasDot  = curPts.length >= 1;
+  // Always build the full month line (1→curDays) so the chart always has ≥2 pts.
+  // Days after today have no new spending so curCum stays flat — same look as July.
+  const curPtsFull=[];
+  for(let d=1;d<=curDays;d++) curPtsFull.push(`${xp(d).toFixed(1)},${yp(curCum[d]).toFixed(1)}`);
 
-  let curLine='', areaFill='', todayDot='', todayVline='';
-  if(hasLine){
-    const areaD=`M${xp(1).toFixed(1)},${yp(0).toFixed(1)} L${curPts.join(' L')} L${xp(stopDay).toFixed(1)},${yp(0).toFixed(1)} Z`;
-    areaFill=`<path d="${areaD}" fill="url(#cg${mi})"/>`;
-    curLine=`<polyline points="${curPts.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
-  }
-  if(hasDot){
-    const tx=parseFloat(xp(stopDay).toFixed(1));
-    const ty=parseFloat(yp(curCum[stopDay]).toFixed(1));
-    todayVline=`<line x1="${tx}" y1="${CT}" x2="${tx}" y2="${CT+CH}" stroke="rgba(255,255,255,.12)" stroke-width="1"/>`;
-    todayDot=`<circle cx="${tx}" cy="${ty}" r="3" fill="var(--bg2)" stroke="var(--accent)" stroke-width="1.8"/>
-              <circle cx="${tx}" cy="${ty}" r="1.3" fill="var(--accent)"/>`;
-  }
+  // Today marker sits at actual todayDay (not end of month)
+  const tx=parseFloat(xp(todayDay).toFixed(1));
+  const ty=parseFloat(yp(curCum[todayDay]).toFixed(1));
+
+  const areaD=`M${xp(1).toFixed(1)},${yp(0).toFixed(1)} L${curPtsFull.join(' L')} L${xp(curDays).toFixed(1)},${yp(0).toFixed(1)} Z`;
+  const areaFill=`<path d="${areaD}" fill="url(#cg${mi})"/>`;
+  const curLine=`<polyline points="${curPtsFull.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const todayVline=`<line x1="${tx}" y1="${CT}" x2="${tx}" y2="${CT+CH}" stroke="rgba(255,255,255,.12)" stroke-width="1"/>`;
+  const todayDot=`<circle cx="${tx}" cy="${ty}" r="3" fill="var(--bg2)" stroke="var(--accent)" stroke-width="1.8"/>
+                  <circle cx="${tx}" cy="${ty}" r="1.3" fill="var(--accent)"/>`;
 
   // X-axis labels: 1, mid, last
   const mid=Math.round(curDays/2);
@@ -1198,22 +1196,22 @@ function renderSpendChart(curRows,prevRows){
     return`<text x="${xp(d).toFixed(1)}" y="${VH-4}" text-anchor="${anchor}" fill="var(--text3)" font-size="8" font-family="DM Mono,monospace">${d}</text>`;
   }).join('');
 
-  // Hover scrubber — works as long as there's at least 1 data point
-  const scrubber = hasDot ? `
+  // Hover scrubber
+  const scrubber=`
     <line id="sc-vline" x1="0" y1="${CT}" x2="0" y2="${CT+CH}"
       stroke="rgba(255,255,255,.4)" stroke-width="1" stroke-dasharray="3,3" style="display:none"/>
     <circle id="sc-dot-o" cx="0" cy="0" r="3" fill="var(--bg2)" stroke="var(--accent)" stroke-width="1.8" style="display:none"/>
     <circle id="sc-dot-i" cx="0" cy="0" r="1.3" fill="var(--accent)" style="display:none"/>
     <rect id="sc-capture" x="${CL}" y="${CT}" width="${CW}" height="${CH}"
       fill="transparent" style="cursor:crosshair;touch-action:none"/>
-  ` : '';
+  `;
 
   chartEl.innerHTML=`<svg width="100%" viewBox="0 0 ${VW} ${VH}" style="display:block">
     ${defs}${areaFill}${prevLine}${curLine}${todayVline}${todayDot}${scrubber}${xlabels}
   </svg>`;
 
   // ── Scrubber event handlers ──────────────────────────────
-  if(hasDot){
+  if(true){
     const svg      = chartEl.querySelector('svg');
     const scVline  = document.getElementById('sc-vline');
     const scDotO   = document.getElementById('sc-dot-o');
@@ -1224,7 +1222,7 @@ function renderSpendChart(curRows,prevRows){
       const bb  = svg.getBoundingClientRect();
       const svgX= (clientX - bb.left) * (VW / bb.width);
       const rawD= ((svgX - CL) / CW) * (curDays - 1) + 1;
-      const day = Math.max(1, Math.min(stopDay, Math.round(rawD)));
+      const day = Math.max(1, Math.min(curDays, Math.round(rawD)));
       const val = curCum[day];
       const tx  = xp(day).toFixed(1);
       const ty  = yp(val).toFixed(1);
