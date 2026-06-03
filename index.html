@@ -684,8 +684,8 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
     height:calc(100vh - 60px);
     overflow:hidden;
     display:grid;
-    grid-template-columns:38% 1fr;
-    grid-template-rows:auto auto 1fr;
+    grid-template-columns:36% 1fr;
+    grid-template-rows:auto 1fr;
     padding:0;
     max-width:100%;
   }
@@ -693,35 +693,55 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
     grid-column:1/-1; grid-row:1;
     margin:14px 20px 0;
   }
-  /* LEFT col row 2: financial summary */
-  #p-dash > .dash-top {
+  /* LEFT col: financials + donut stacked as flex */
+  #p-dash > .dash-left {
     grid-column:1; grid-row:2;
     display:flex; flex-direction:column; gap:10px;
-    padding:14px 10px 0 20px;
+    padding:14px 10px 14px 20px;
+    overflow:hidden; min-height:0;
+  }
+  .dash-left > .slbl { display:none; }
+  .dash-left > .dash-top {
+    flex-shrink:0;
+    display:flex; flex-direction:column; gap:10px;
     margin:0;
   }
-  #p-dash > .dash-top > .bigcard  { margin:0; flex-shrink:0; }
-  #p-dash > .dash-top > .mini-row { margin:0; order:0; flex-shrink:0; }
-  /* LEFT col row 3: spending donut */
-  #p-dash > .slbl { display:none; }
-  #p-dash > .donut-card {
-    grid-column:1; grid-row:3;
-    margin:10px 10px 14px 20px;
-    overflow-y:auto;
-    min-height:0;
+  .dash-left .dash-top > .bigcard  { margin:0; }
+  .dash-left .dash-top > .mini-row { margin:0; order:0; }
+  /* Donut fills all remaining left-column height */
+  .dash-left > .donut-card {
+    flex:1 1 0;
+    margin:0;
+    overflow-y:auto; min-height:0;
+    display:flex; align-items:center; justify-content:center;
   }
-  /* RIGHT col rows 2-3: chart + categories + CC */
+  /* Scale up the donut SVG on desktop */
+  .dash-left .donut-card svg {
+    width:200px !important; height:200px !important;
+  }
+  /* RIGHT col: chart (capped) + cats (grow) + CC (compact) */
   #p-dash > .dash-right {
-    grid-column:2; grid-row:2/4;
+    grid-column:2; grid-row:2;
     display:flex; flex-direction:column; gap:10px;
     padding:14px 20px 14px 10px;
-    overflow:hidden;
-    min-height:0;
+    overflow:hidden; min-height:0;
   }
-  .dash-right > .slbl   { display:none; }
-  .dash-right > .chart-card { margin:0; flex-shrink:0; }
-  .dash-right > #cat-card   { margin:0; flex:1 1 0; overflow-y:auto; min-height:0; }
-  .dash-right > #cc-card    { margin:0; flex:0 1 auto; overflow-y:auto; max-height:200px; min-height:60px; }
+  .dash-right > .slbl { display:none; }
+  /* Chart: cap height so it doesn't dominate */
+  .dash-right > .chart-card {
+    margin:0; flex:0 0 auto;
+    max-height:240px; overflow:hidden;
+  }
+  .dash-right .chart-body svg { height:110px; display:block; }
+  /* Categories: takes the bulk of remaining space */
+  .dash-right > #cat-card {
+    margin:0; flex:1 1 0; overflow-y:auto; min-height:0;
+  }
+  /* CC cards: compact at bottom */
+  .dash-right > #cc-card {
+    margin:0; flex:0 0 auto; overflow-y:auto;
+    max-height:220px; min-height:80px;
+  }
   #p-dash > .pb { display:none; }
 }
 
@@ -765,30 +785,32 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
       <span class="banner-text">Connect your Google Sheet to load live data</span>
       <button class="banner-cta" onclick="openSetup()">Connect →</button>
     </div>
-    <div class="dash-top">
-      <div class="bigcard" id="h-income-card">
-        <div class="bc-label">Total Income</div>
-        <div class="bc-val" id="h-income">—</div>
-        <div class="bc-sub" id="h-income-sub"></div>
-      </div>
-      <div class="mini-row">
-        <div class="mini-card">
-          <div class="mc-label">Rent After Adj.</div>
-          <div class="mc-val" id="h-rent">—</div>
+    <div class="dash-left">
+      <div class="dash-top">
+        <div class="bigcard" id="h-income-card">
+          <div class="bc-label">Total Income</div>
+          <div class="bc-val" id="h-income">—</div>
+          <div class="bc-sub" id="h-income-sub"></div>
         </div>
-        <div class="mini-card">
-          <div class="mc-label">CC Charges</div>
-          <div class="mc-val" id="h-cc">—</div>
+        <div class="mini-row">
+          <div class="mini-card">
+            <div class="mc-label">Rent After Adj.</div>
+            <div class="mc-val" id="h-rent">—</div>
+          </div>
+          <div class="mini-card">
+            <div class="mc-label">CC Charges</div>
+            <div class="mc-val" id="h-cc">—</div>
+          </div>
+        </div>
+        <div class="bigcard green" id="h-left-card">
+          <div class="bc-label">Money Left Over</div>
+          <div class="bc-val green" id="h-left">—</div>
+          <div class="bc-sub" id="h-left-sub"></div>
         </div>
       </div>
-      <div class="bigcard green" id="h-left-card">
-        <div class="bc-label">Money Left Over</div>
-        <div class="bc-val green" id="h-left">—</div>
-        <div class="bc-sub" id="h-left-sub"></div>
-      </div>
+      <div class="slbl">Spending Breakdown</div>
+      <div class="donut-card" id="donut-card"></div>
     </div>
-    <div class="slbl">Spending Breakdown</div>
-    <div class="donut-card" id="donut-card"></div>
     <div class="dash-right">
       <div class="slbl">Daily Spending</div>
       <div class="chart-card">
