@@ -1294,9 +1294,9 @@ function renderRecentTxns(logRows){
   const sorted=[...logRows]
     .filter(r=>(r.desc||'').trim()||(r.total>0))
     .sort((a,b)=>{ const da=parseDate(a.date), db=parseDate(b.date); if(!da&&!db) return 0; if(!da) return 1; if(!db) return -1; return db-da; })
-    .slice(0,8);
+    .slice(0,6);
   if(!sorted.length){
-    el.innerHTML='<div class="recent-txns-hdr">Recent</div><div style="padding:10px 0;color:var(--text3);font-size:12px;font-family:var(--mono)">No transactions yet</div>';
+    el.innerHTML='<div class="recent-txns-hdr">Latest Transactions</div><div style="padding:10px 0;color:var(--text3);font-size:12px;font-family:var(--mono)">No transactions yet</div>';
     return;
   }
   const rows=sorted.map(r=>{
@@ -1316,7 +1316,7 @@ function renderRecentTxns(logRows){
       <div class="recent-amt">${amt}</div>
     </div>`;
   }).join('');
-  el.innerHTML=`<div class="recent-txns-hdr">Recent</div>${rows}`;
+  el.innerHTML=`<div class="recent-txns-hdr">Latest Transactions</div>${rows}`;
 }
 
 function animateSlide(){
