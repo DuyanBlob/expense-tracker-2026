@@ -232,6 +232,16 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .chart-leg-amt { font-family:var(--mono); font-size:13px; font-weight:500; color:var(--text); }
 .chart-leg-amt.muted { color:var(--text2); }
 
+/* ── RECENT TRANSACTIONS ── */
+.recent-txns { margin:10px 18px 0; }
+.recent-txns-hdr { font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--text3); padding:0 0 8px; }
+.recent-row { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:9px; background:var(--bg2); border:1px solid var(--line); margin-bottom:6px; }
+.recent-ico { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+.recent-info { flex:1; min-width:0; }
+.recent-desc { font-size:12px; color:var(--text); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.recent-meta { font-size:10px; color:var(--text3); margin-top:2px; font-family:var(--mono); }
+.recent-amt { font-family:var(--mono); font-size:13px; color:var(--text); font-weight:500; flex-shrink:0; }
+
 /* ── LOG DATE HEADERS ── */
 .log-date-hdr {
   display:flex; align-items:center; justify-content:space-between;
@@ -733,20 +743,33 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
     overflow:hidden; min-height:0;
   }
   .dash-right > .slbl { display:none; }
-  /* Chart card fills full right column height */
+
+  /* Chart card: natural height (no forced stretch) so SVG keeps its aspect ratio */
   .dash-right > .chart-card {
-    flex:1 1 0; margin:0; min-height:0;
+    flex-shrink:0; margin:0;
     display:flex; flex-direction:column;
-    overflow:hidden;
+    position:relative; overflow:visible;
+    padding:0;
   }
-  .dash-right .chart-top    { flex-shrink:0; }
-  .dash-right .chart-footer { flex-shrink:0; }
-  /* Chart body fills remaining height; SVG keeps natural aspect ratio */
+  /* Overlay the numbers on top of the SVG, top-left corner */
+  .dash-right .chart-top {
+    position:absolute; top:12px; left:14px; right:14px;
+    z-index:2; pointer-events:none;
+    margin:0;
+  }
+  .dash-right .chart-top * { pointer-events:auto; }
+  .dash-right .chart-footer { flex-shrink:0; margin:0; }
+  /* Chart body: no top gap (numbers overlay), SVG fills width */
   .dash-right .chart-body {
-    flex:1 1 0; min-height:0;
-    overflow:hidden; margin:14px -16px 0;
+    flex-shrink:0; overflow:hidden; margin:0;
   }
   .dash-right .chart-body svg { width:100%; height:auto; display:block; }
+
+  /* Recent transactions fills remaining space in right column */
+  .dash-right > .recent-txns {
+    flex:1 1 0; min-height:0; overflow-y:auto;
+    margin:10px 0 0;
+  }
   #p-dash > .pb { display:none; }
 }
 
@@ -836,6 +859,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
         <div class="chart-body" id="spend-chart"></div>
         <div class="chart-footer" id="chart-legend"></div>
       </div>
+      <div class="recent-txns" id="recent-txns"></div>
     </div>
     <div class="pb"></div>
   </div>
@@ -1246,7 +1270,37 @@ async function loadData(){
   renderAll(d);
 }
 
-function renderAll(d){ renderDash(d); renderLog(d.logRows||[]); renderBudget(d); renderInvest(d); renderSharon(d); renderSpendChart(d.logRows||[], d.prevLogRows||[]); animateSlide(); }
+function renderAll(d){ renderDash(d); renderLog(d.logRows||[]); renderBudget(d); renderInvest(d); renderSharon(d); renderSpendChart(d.logRows||[], d.prevLogRows||[]); renderRecentTxns(d.logRows||[]); animateSlide(); }
+
+function renderRecentTxns(logRows){
+  const el=document.getElementById('recent-txns');
+  if(!el) return;
+  const sorted=[...logRows]
+    .filter(r=>(r.desc||'').trim()||(r.total>0))
+    .sort((a,b)=>{ const da=new Date((a.date||'')+'T00:00:00'), db=new Date((b.date||'')+'T00:00:00'); return db-da; })
+    .slice(0,8);
+  if(!sorted.length){
+    el.innerHTML='<div class="recent-txns-hdr">Recent</div><div style="padding:10px 0;color:var(--text3);font-size:12px;font-family:var(--mono)">No transactions yet</div>';
+    return;
+  }
+  const rows=sorted.map(r=>{
+    const col=CAT_COL[r.cat]||'#3b82f6';
+    const ico=CAT_ICON[r.cat]||'📦';
+    const ds=r.date?new Date(r.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+    const amt=r.share!=null?fmt(r.share):(r.total?fmt(r.total):'—');
+    const desc=(r.desc||'—').replace(/</g,'&lt;');
+    const cat=(r.cat||'').replace(/</g,'&lt;');
+    return`<div class="recent-row">
+      <div class="recent-ico" style="background:${col}22">${ico}</div>
+      <div class="recent-info">
+        <div class="recent-desc">${desc}</div>
+        <div class="recent-meta">${ds}${cat?' · '+cat:''}</div>
+      </div>
+      <div class="recent-amt">${amt}</div>
+    </div>`;
+  }).join('');
+  el.innerHTML=`<div class="recent-txns-hdr">Recent</div>${rows}`;
+}
 
 function animateSlide(){
   if(!slideDir) return;
