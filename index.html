@@ -693,12 +693,12 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
     grid-column:1/-1; grid-row:1;
     margin:14px 20px 0;
   }
-  /* LEFT col: financials + donut stacked as flex */
+  /* LEFT col: one unified scroll for all content */
   #p-dash > .dash-left {
     grid-column:1; grid-row:2;
     display:flex; flex-direction:column; gap:10px;
-    padding:14px 10px 14px 20px;
-    overflow:hidden; min-height:0;
+    padding:14px 10px 20px 20px;
+    overflow-y:auto; overflow-x:hidden; min-height:0;
   }
   .dash-left > .slbl { display:none; }
   .dash-left > .dash-top {
@@ -708,24 +708,17 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   }
   .dash-left .dash-top > .bigcard  { margin:0; }
   .dash-left .dash-top > .mini-row { margin:0; order:0; }
-  /* Donut: natural height, slightly bigger SVG */
-  .dash-left > .donut-card {
-    flex:0 0 auto;
-    margin:0;
-  }
-  .dash-left .donut-card svg {
-    width:160px !important; height:160px !important;
-  }
-  /* Categories fill all remaining left-column space */
-  .dash-left > #cat-card {
-    flex:1 1 0; margin:0; overflow-y:auto; min-height:0;
-  }
-  /* CC compact at bottom of left column */
-  .dash-left > #cc-card {
-    flex:0 0 auto; margin:0; overflow-y:auto; max-height:200px;
-  }
+  /* Donut: natural height, no internal scroll */
+  .dash-left > .donut-card { flex-shrink:0; margin:0; }
+  .dash-left .donut-card svg { width:160px !important; height:160px !important; }
+  /* Donut legend: keep name tight so value sits close */
+  .dash-left .donut-cat-name { flex:none; }
+  /* Categories: natural height, no individual scroll */
+  .dash-left > #cat-card { flex-shrink:0; margin:0; }
+  /* CC: natural height, no individual scroll */
+  .dash-left > #cc-card  { flex-shrink:0; margin:0; }
 
-  /* RIGHT col: chart fills the entire column height */
+  /* RIGHT col: chart at natural aspect ratio (no stretching) */
   #p-dash > .dash-right {
     grid-column:2; grid-row:2;
     display:flex; flex-direction:column;
@@ -733,24 +726,20 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
     overflow:hidden; min-height:0;
   }
   .dash-right > .slbl { display:none; }
-  /* Chart card fills full right column */
+  /* Chart card fills full right column height */
   .dash-right > .chart-card {
     flex:1 1 0; margin:0; min-height:0;
     display:flex; flex-direction:column;
     overflow:hidden;
   }
-  .dash-right .chart-top   { flex-shrink:0; }
+  .dash-right .chart-top    { flex-shrink:0; }
   .dash-right .chart-footer { flex-shrink:0; }
-  /* Chart body expands to fill remaining height */
+  /* Chart body fills remaining height; SVG keeps natural aspect ratio */
   .dash-right .chart-body {
     flex:1 1 0; min-height:0;
     overflow:hidden; margin:14px -16px 0;
   }
-  /* SVG fills chart-body — stretches to fit, no letterboxing */
-  .dash-right .chart-body svg {
-    width:100% !important; height:100% !important;
-    display:block;
-  }
+  .dash-right .chart-body svg { width:100%; height:auto; display:block; }
   #p-dash > .pb { display:none; }
 }
 
@@ -1407,7 +1396,7 @@ function renderSpendChart(curRows,prevRows){
       fill="transparent" style="cursor:crosshair;touch-action:none"/>
   `;
 
-  chartEl.innerHTML=`<svg width="100%" viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="none" style="display:block">
+  chartEl.innerHTML=`<svg width="100%" viewBox="0 0 ${VW} ${VH}" style="display:block">
     ${defs}${areaFill}${prevLine}${curLine}${todayVline}${todayDot}${scrubber}${xlabels}
   </svg>`;
 
