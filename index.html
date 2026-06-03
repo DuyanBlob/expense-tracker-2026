@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -589,39 +589,44 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 
 /* ══════════════════════════════════════════════════════════
    DESKTOP LAYOUT  ·  min-width: 900px
-   All styles above are untouched (mobile-first).
+   All mobile styles above are untouched (mobile-first).
 ══════════════════════════════════════════════════════════ */
 @media (min-width:900px){
 
-  /* 1 ── Body: header spans top row, sidebar + content below */
-  body { flex-direction:row; flex-wrap:wrap; align-content:flex-start; }
-  .hdr { width:100%; height:60px; padding:0 32px; }
+  /* 1 ── Header */
+  .hdr { height:60px; padding:0 32px; }
 
-  /* 2 ── Left sidebar nav */
+  /* 2 ── Sidebar: fixed left, thin (56px) → expands to 210px on hover */
   .bnav {
-    position:relative;           /* remove fixed */
-    order:1;
+    position:fixed;
+    top:60px; left:0; bottom:auto; right:auto;
+    height:calc(100vh - 60px);
+    width:56px;
     flex-direction:column;
     align-items:stretch;
-    width:210px;
-    height:calc(100vh - 60px);
     border-top:none;
     border-right:1px solid var(--line);
     padding-bottom:0;
-    flex-shrink:0;
+    overflow:hidden;
+    transition:width .22s cubic-bezier(.4,0,.2,1);
+    z-index:50;
     background:rgba(4,15,32,.98);
+    backdrop-filter:blur(28px);
+    -webkit-backdrop-filter:blur(28px);
   }
+  .bnav:hover { width:210px; box-shadow:4px 0 32px rgba(0,0,0,.5); }
   .bni {
     flex-direction:row;
     justify-content:flex-start;
-    padding:15px 22px;
+    padding:14px 17px;
     gap:14px;
     font-size:12px;
     min-height:50px;
     letter-spacing:.04em;
+    white-space:nowrap;
+    overflow:hidden;
   }
-  .bni-icon { font-size:18px; min-width:22px; text-align:center; }
-  /* Pip → left-edge vertical bar */
+  .bni-icon { font-size:18px; width:22px; text-align:center; flex-shrink:0; }
   .bni-pip {
     top:50%; left:0;
     width:3px; height:22px;
@@ -630,42 +635,39 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   }
   .bni.active .bni-pip { transform:translateY(-50%) scaleY(1); }
 
-  /* 3 ── Scroll area fills remaining width */
+  /* 3 ── Scroll area: offset by thin sidebar */
   .scroll {
-    order:2; flex:1;
+    margin-left:56px;
     height:calc(100vh - 60px);
     max-height:calc(100vh - 60px);
-    padding-bottom:48px;
+    padding-bottom:40px;
   }
 
-  /* 4 ── Center & constrain page content */
-  .page { max-width:900px; margin:0 auto; padding:0 28px; }
+  /* 4 ── Page base */
+  .page { max-width:100%; padding:0; margin:0; }
 
-  /* 5 ── Reset side margins (page padding takes over) */
+  /* Non-dashboard pages: centered, readable width */
+  #p-log, #p-budget, #p-invest, #p-sharon, #p-settings {
+    max-width:860px;
+    margin:0 auto;
+    padding:0 28px;
+  }
+
+  /* 5 ── Card spacing */
   .bigcard  { margin:16px 0 0; }
   .mini-row { margin:12px 0 0; }
   .donut-card, .chart-card { margin:12px 0 0; }
-  .lcard { margin:12px 0 0; }
-  .slbl { padding:26px 0 10px; margin:0; }
+  .lcard    { margin:12px 0 0; }
+  .slbl     { padding:26px 0 10px; margin:0; }
   .log-filter-wrap { padding:14px 0 0; }
-  .bsum-card  { margin:12px 0 0; }
-  .proj-card  { margin:10px 0 0; }
-  .ally-grid  { margin:10px 0 0; }
+  .bsum-card { margin:12px 0 0; }
+  .proj-card { margin:10px 0 0; }
+  .ally-grid { margin:10px 0 0; }
 
-  /* 6 ── Dashboard: income + money-left side-by-side */
-  .dash-top {
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    column-gap:16px;
-    margin:16px 0 0;
-  }
-  .dash-top > .bigcard  { margin:0; }
-  .dash-top > .mini-row { grid-column:1/-1; order:10; margin:12px 0 0; }
-
-  /* 7 ── FAB: stays bottom-right of viewport */
+  /* 6 ── FAB */
   .fab { bottom:28px; right:28px; }
 
-  /* 8 ── Modal → centered dialog (not bottom sheet) */
+  /* 7 ── Modal: centered dialog */
   .overlay { align-items:center; justify-content:center; }
   .overlay .sheet {
     position:relative; bottom:auto;
@@ -676,6 +678,51 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   }
   .overlay.open .sheet { transform:translateY(0) scale(1); }
   .drag { display:none; }
+
+  /* ══ DASHBOARD: 2-column grid, fills viewport, no scroll ══ */
+  #p-dash {
+    height:calc(100vh - 60px);
+    overflow:hidden;
+    display:grid;
+    grid-template-columns:38% 1fr;
+    grid-template-rows:auto auto 1fr;
+    padding:0;
+    max-width:100%;
+  }
+  #p-dash > #setup-banner {
+    grid-column:1/-1; grid-row:1;
+    margin:14px 20px 0;
+  }
+  /* LEFT col row 2: financial summary */
+  #p-dash > .dash-top {
+    grid-column:1; grid-row:2;
+    display:flex; flex-direction:column; gap:10px;
+    padding:14px 10px 0 20px;
+    margin:0;
+  }
+  #p-dash > .dash-top > .bigcard  { margin:0; flex-shrink:0; }
+  #p-dash > .dash-top > .mini-row { margin:0; order:0; flex-shrink:0; }
+  /* LEFT col row 3: spending donut */
+  #p-dash > .slbl { display:none; }
+  #p-dash > .donut-card {
+    grid-column:1; grid-row:3;
+    margin:10px 10px 14px 20px;
+    overflow-y:auto;
+    min-height:0;
+  }
+  /* RIGHT col rows 2-3: chart + categories + CC */
+  #p-dash > .dash-right {
+    grid-column:2; grid-row:2/4;
+    display:flex; flex-direction:column; gap:10px;
+    padding:14px 20px 14px 10px;
+    overflow:hidden;
+    min-height:0;
+  }
+  .dash-right > .slbl   { display:none; }
+  .dash-right > .chart-card { margin:0; flex-shrink:0; }
+  .dash-right > #cat-card   { margin:0; flex:1 1 0; overflow-y:auto; min-height:0; }
+  .dash-right > #cc-card    { margin:0; flex:0 1 auto; overflow-y:auto; max-height:200px; min-height:60px; }
+  #p-dash > .pb { display:none; }
 }
 
 /* CC brand logos — base64 once, referenced by class */
@@ -742,24 +789,26 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
     </div>
     <div class="slbl">Spending Breakdown</div>
     <div class="donut-card" id="donut-card"></div>
-    <div class="slbl">Daily Spending</div>
-    <div class="chart-card">
-      <div class="chart-top">
-        <div class="chart-top-cur">
-          <div class="chart-total" id="chart-total">—</div>
-          <div class="chart-asof" id="chart-asof">Your spending this month</div>
+    <div class="dash-right">
+      <div class="slbl">Daily Spending</div>
+      <div class="chart-card">
+        <div class="chart-top">
+          <div class="chart-top-cur">
+            <div class="chart-total" id="chart-total">—</div>
+            <div class="chart-asof" id="chart-asof">Your spending this month</div>
+          </div>
+          <div class="chart-top-prev" id="chart-prev-wrap" style="display:none">
+            <div class="chart-prev" id="chart-prev">—</div>
+            <div class="chart-prev-lbl" id="chart-prev-lbl">Last month</div>
+          </div>
         </div>
-        <div class="chart-top-prev" id="chart-prev-wrap" style="display:none">
-          <div class="chart-prev" id="chart-prev">—</div>
-          <div class="chart-prev-lbl" id="chart-prev-lbl">Last month</div>
-        </div>
+        <div class="chart-body" id="spend-chart"></div>
+        <div class="chart-footer" id="chart-legend"></div>
       </div>
-      <div class="chart-body" id="spend-chart"></div>
-      <div class="chart-footer" id="chart-legend"></div>
+      <div class="lcard" id="cat-card"></div>
+      <div class="slbl">Credit Cards</div>
+      <div class="lcard" id="cc-card"></div>
     </div>
-    <div class="lcard" id="cat-card"></div>
-    <div class="slbl">Credit Cards</div>
-    <div class="lcard" id="cc-card"></div>
     <div class="pb"></div>
   </div>
 
