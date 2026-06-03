@@ -604,6 +604,20 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .pb { height:20px; }
 
 /* ══════════════════════════════════════════════════════════
+   MOBILE-ONLY: lift Daily Spending chart above the pie chart
+   (income cards stay on top). Flatten wrappers so order applies.
+══════════════════════════════════════════════════════════ */
+@media (max-width:899px){
+  #p-dash.active { display:flex; flex-direction:column; }
+  #p-dash.active > .dash-left,
+  #p-dash.active > .dash-right { display:contents; }
+  #p-dash.active > #setup-banner { order:-3; }
+  #p-dash.active .dash-top { order:-2; }
+  #p-dash.active .dash-right > .slbl,
+  #p-dash.active .dash-right > .chart-card { order:-1; }
+}
+
+/* ══════════════════════════════════════════════════════════
    DESKTOP LAYOUT  ·  min-width: 900px
    All mobile styles above are untouched (mobile-first).
 ══════════════════════════════════════════════════════════ */
