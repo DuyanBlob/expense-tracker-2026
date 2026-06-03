@@ -708,39 +708,48 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   }
   .dash-left .dash-top > .bigcard  { margin:0; }
   .dash-left .dash-top > .mini-row { margin:0; order:0; }
-  /* Donut fills all remaining left-column height */
+  /* Donut: natural height, slightly bigger SVG */
   .dash-left > .donut-card {
-    flex:1 1 0;
+    flex:0 0 auto;
     margin:0;
-    overflow-y:auto; min-height:0;
-    display:flex; align-items:center; justify-content:center;
   }
-  /* Scale up the donut SVG on desktop */
   .dash-left .donut-card svg {
-    width:200px !important; height:200px !important;
+    width:160px !important; height:160px !important;
   }
-  /* RIGHT col: chart (capped) + cats (grow) + CC (compact) */
+  /* Categories fill all remaining left-column space */
+  .dash-left > #cat-card {
+    flex:1 1 0; margin:0; overflow-y:auto; min-height:0;
+  }
+  /* CC compact at bottom of left column */
+  .dash-left > #cc-card {
+    flex:0 0 auto; margin:0; overflow-y:auto; max-height:200px;
+  }
+
+  /* RIGHT col: chart fills the entire column height */
   #p-dash > .dash-right {
     grid-column:2; grid-row:2;
-    display:flex; flex-direction:column; gap:10px;
+    display:flex; flex-direction:column;
     padding:14px 20px 14px 10px;
     overflow:hidden; min-height:0;
   }
   .dash-right > .slbl { display:none; }
-  /* Chart: cap height so it doesn't dominate */
+  /* Chart card fills full right column */
   .dash-right > .chart-card {
-    margin:0; flex:0 0 auto;
-    max-height:240px; overflow:hidden;
+    flex:1 1 0; margin:0; min-height:0;
+    display:flex; flex-direction:column;
+    overflow:hidden;
   }
-  .dash-right .chart-body svg { height:110px; display:block; }
-  /* Categories: takes the bulk of remaining space */
-  .dash-right > #cat-card {
-    margin:0; flex:1 1 0; overflow-y:auto; min-height:0;
+  .dash-right .chart-top   { flex-shrink:0; }
+  .dash-right .chart-footer { flex-shrink:0; }
+  /* Chart body expands to fill remaining height */
+  .dash-right .chart-body {
+    flex:1 1 0; min-height:0;
+    overflow:hidden; margin:14px -16px 0;
   }
-  /* CC cards: compact at bottom */
-  .dash-right > #cc-card {
-    margin:0; flex:0 0 auto; overflow-y:auto;
-    max-height:220px; min-height:80px;
+  /* SVG fills chart-body — stretches to fit, no letterboxing */
+  .dash-right .chart-body svg {
+    width:100% !important; height:100% !important;
+    display:block;
   }
   #p-dash > .pb { display:none; }
 }
@@ -810,6 +819,9 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
       </div>
       <div class="slbl">Spending Breakdown</div>
       <div class="donut-card" id="donut-card"></div>
+      <div class="lcard" id="cat-card"></div>
+      <div class="slbl">Credit Cards</div>
+      <div class="lcard" id="cc-card"></div>
     </div>
     <div class="dash-right">
       <div class="slbl">Daily Spending</div>
@@ -827,9 +839,6 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
         <div class="chart-body" id="spend-chart"></div>
         <div class="chart-footer" id="chart-legend"></div>
       </div>
-      <div class="lcard" id="cat-card"></div>
-      <div class="slbl">Credit Cards</div>
-      <div class="lcard" id="cc-card"></div>
     </div>
     <div class="pb"></div>
   </div>
@@ -1398,7 +1407,7 @@ function renderSpendChart(curRows,prevRows){
       fill="transparent" style="cursor:crosshair;touch-action:none"/>
   `;
 
-  chartEl.innerHTML=`<svg width="100%" viewBox="0 0 ${VW} ${VH}" style="display:block">
+  chartEl.innerHTML=`<svg width="100%" viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="none" style="display:block">
     ${defs}${areaFill}${prevLine}${curLine}${todayVline}${todayDot}${scrubber}${xlabels}
   </svg>`;
 
