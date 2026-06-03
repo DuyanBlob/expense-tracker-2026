@@ -67,6 +67,12 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .hdr-name { font-size:14px; font-weight:700; color:var(--text); }
 .hdr-name span { color:var(--text2); font-weight:500; font-size:12px; margin-left:4px; }
 .hdr-r { display:flex; align-items:center; gap:8px; }
+.hdr-date {
+  font-family:var(--mono); font-size:11px; color:var(--text2);
+  letter-spacing:.06em; text-transform:uppercase;
+  position:absolute; left:50%; transform:translateX(-50%);
+  display:none;
+}
 .mpill {
   display:flex; align-items:center;
   background:var(--bg3); border:1px solid var(--line2);
@@ -595,6 +601,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 
   /* 1 ── Header */
   .hdr { height:60px; padding:0 32px; }
+  .hdr-date { display:block; }
 
   /* 2 ── Sidebar: fixed left, thin (56px) → expands to 210px on hover */
   .bnav {
@@ -618,8 +625,8 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   .bni {
     flex-direction:row;
     justify-content:flex-start;
-    padding:14px 17px;
-    gap:14px;
+    padding:14px 17px 14px 17px;
+    gap:22px;
     font-size:12px;
     min-height:50px;
     letter-spacing:.04em;
@@ -762,6 +769,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
     <div class="hdr-logo">ET</div>
     <div class="hdr-name">Expenses <span>2026</span></div>
   </div>
+  <div class="hdr-date" id="hdr-date"></div>
   <div class="hdr-r">
     <div class="mpill">
       <button class="mbtn" onclick="chMonth(-1)">‹</button>
@@ -1376,8 +1384,9 @@ function renderSpendChart(curRows,prevRows){
   const areaFill=isFutureMon?'':`<path d="${areaD}" fill="url(#cg${mi})"/>`;
   const curLine=isFutureMon?'':`<polyline points="${curPtsFull.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
   const todayVline=isFutureMon?'': `<line x1="${tx}" y1="${CT}" x2="${tx}" y2="${CT+CH}" stroke="rgba(255,255,255,.12)" stroke-width="1"/>`;
-  const todayDot=isFutureMon?'': `<circle cx="${tx}" cy="${ty}" r="3" fill="var(--bg2)" stroke="var(--accent)" stroke-width="1.8"/>
-                  <circle cx="${tx}" cy="${ty}" r="1.3" fill="var(--accent)"/>`;
+  const todayDot=isFutureMon?'': `<circle cx="${tx}" cy="${ty}" r="5.5" fill="none" stroke="var(--amber)" stroke-width="1" opacity=".45"/>
+                  <circle cx="${tx}" cy="${ty}" r="3.2" fill="var(--amber)"/>
+                  <circle cx="${tx}" cy="${ty}" r="1.2" fill="#fff" opacity=".7"/>`;
 
   // X-axis labels: 1, mid, last
   const mid=Math.round(curDays/2);
@@ -2099,6 +2108,14 @@ if(cfg){
   setTimeout(initAuth,800);
 }
 nav('dash');
+
+// ─── HEADER DATE ──────────────────────────────────────────
+(()=>{
+  const now=new Date();
+  const dateStr=now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+  const el=document.getElementById('hdr-date');
+  if(el) el.textContent=dateStr;
+})();
 </script>
 </body>
 </html>
