@@ -587,6 +587,97 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 }
 .pb { height:20px; }
 
+/* ══════════════════════════════════════════════════════════
+   DESKTOP LAYOUT  ·  min-width: 900px
+   All styles above are untouched (mobile-first).
+══════════════════════════════════════════════════════════ */
+@media (min-width:900px){
+
+  /* 1 ── Body: header spans top row, sidebar + content below */
+  body { flex-direction:row; flex-wrap:wrap; align-content:flex-start; }
+  .hdr { width:100%; height:60px; padding:0 32px; }
+
+  /* 2 ── Left sidebar nav */
+  .bnav {
+    position:relative;           /* remove fixed */
+    order:1;
+    flex-direction:column;
+    align-items:stretch;
+    width:210px;
+    height:calc(100vh - 60px);
+    border-top:none;
+    border-right:1px solid var(--line);
+    padding-bottom:0;
+    flex-shrink:0;
+    background:rgba(4,15,32,.98);
+  }
+  .bni {
+    flex-direction:row;
+    justify-content:flex-start;
+    padding:15px 22px;
+    gap:14px;
+    font-size:12px;
+    min-height:50px;
+    letter-spacing:.04em;
+  }
+  .bni-icon { font-size:18px; min-width:22px; text-align:center; }
+  /* Pip → left-edge vertical bar */
+  .bni-pip {
+    top:50%; left:0;
+    width:3px; height:22px;
+    transform:translateY(-50%) scaleY(0);
+    border-radius:0 3px 3px 0;
+  }
+  .bni.active .bni-pip { transform:translateY(-50%) scaleY(1); }
+
+  /* 3 ── Scroll area fills remaining width */
+  .scroll {
+    order:2; flex:1;
+    height:calc(100vh - 60px);
+    max-height:calc(100vh - 60px);
+    padding-bottom:48px;
+  }
+
+  /* 4 ── Center & constrain page content */
+  .page { max-width:900px; margin:0 auto; padding:0 28px; }
+
+  /* 5 ── Reset side margins (page padding takes over) */
+  .bigcard  { margin:16px 0 0; }
+  .mini-row { margin:12px 0 0; }
+  .donut-card, .chart-card { margin:12px 0 0; }
+  .lcard { margin:12px 0 0; }
+  .slbl { padding:26px 0 10px; margin:0; }
+  .log-filter-wrap { padding:14px 0 0; }
+  .bsum-card  { margin:12px 0 0; }
+  .proj-card  { margin:10px 0 0; }
+  .ally-grid  { margin:10px 0 0; }
+
+  /* 6 ── Dashboard: income + money-left side-by-side */
+  .dash-top {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    column-gap:16px;
+    margin:16px 0 0;
+  }
+  .dash-top > .bigcard  { margin:0; }
+  .dash-top > .mini-row { grid-column:1/-1; order:10; margin:12px 0 0; }
+
+  /* 7 ── FAB: stays bottom-right of viewport */
+  .fab { bottom:28px; right:28px; }
+
+  /* 8 ── Modal → centered dialog (not bottom sheet) */
+  .overlay { align-items:center; justify-content:center; }
+  .overlay .sheet {
+    position:relative; bottom:auto;
+    width:520px; max-width:90vw; max-height:86vh;
+    border-radius:var(--r);
+    transform:translateY(14px) scale(.97);
+    border-top:none; border:1px solid var(--line2);
+  }
+  .overlay.open .sheet { transform:translateY(0) scale(1); }
+  .drag { display:none; }
+}
+
 /* CC brand logos — base64 once, referenced by class */
 .cclogo{width:28px;height:28px;border-radius:6px;background-size:contain;background-repeat:no-repeat;background-position:center;display:inline-block;flex-shrink:0}
 .cc-chase{background-image:url(data:image/webp;base64,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)}
@@ -627,25 +718,27 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
       <span class="banner-text">Connect your Google Sheet to load live data</span>
       <button class="banner-cta" onclick="openSetup()">Connect →</button>
     </div>
-    <div class="bigcard" id="h-income-card">
-      <div class="bc-label">Total Income</div>
-      <div class="bc-val" id="h-income">—</div>
-      <div class="bc-sub" id="h-income-sub"></div>
-    </div>
-    <div class="mini-row">
-      <div class="mini-card">
-        <div class="mc-label">Rent After Adj.</div>
-        <div class="mc-val" id="h-rent">—</div>
+    <div class="dash-top">
+      <div class="bigcard" id="h-income-card">
+        <div class="bc-label">Total Income</div>
+        <div class="bc-val" id="h-income">—</div>
+        <div class="bc-sub" id="h-income-sub"></div>
       </div>
-      <div class="mini-card">
-        <div class="mc-label">CC Charges</div>
-        <div class="mc-val" id="h-cc">—</div>
+      <div class="mini-row">
+        <div class="mini-card">
+          <div class="mc-label">Rent After Adj.</div>
+          <div class="mc-val" id="h-rent">—</div>
+        </div>
+        <div class="mini-card">
+          <div class="mc-label">CC Charges</div>
+          <div class="mc-val" id="h-cc">—</div>
+        </div>
       </div>
-    </div>
-    <div class="bigcard green" id="h-left-card" style="margin-top:10px">
-      <div class="bc-label">Money Left Over</div>
-      <div class="bc-val green" id="h-left">—</div>
-      <div class="bc-sub" id="h-left-sub"></div>
+      <div class="bigcard green" id="h-left-card">
+        <div class="bc-label">Money Left Over</div>
+        <div class="bc-val green" id="h-left">—</div>
+        <div class="bc-sub" id="h-left-sub"></div>
+      </div>
     </div>
     <div class="slbl">Spending Breakdown</div>
     <div class="donut-card" id="donut-card"></div>
