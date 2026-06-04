@@ -1088,6 +1088,7 @@ const ROWS = {
 
 // ─── STATE ────────────────────────────────────────────────
 let mi=1, curView='dash', token=null, cfg=null, loading=false, slideDir=0;
+let tokenClient=null, authInteractive=false;
 let logFilterCat=null, logFilterCC=null, logSort='date-desc';
 let editingSheetRow=null;
 const cache={}, cacheTs={};
@@ -1110,30 +1111,54 @@ function saveConfig(){
   cfg={clientId,sheetId};
   localStorage.setItem('et_cfg',JSON.stringify(cfg));
   toast('Connecting...','#1d4ed8');
-  initAuth();
+  initAuth(true);
 }
 function openSetup(){ nav('settings'); }
 
 // ─── GOOGLE AUTH ──────────────────────────────────────────
-function initAuth(){
+function saveToken(tok,expiresIn){
+  token=tok;
+  // refresh 60s before actual expiry for safety
+  const exp=Date.now()+((expiresIn||3600)*1000)-60000;
+  try{ localStorage.setItem('et_token',JSON.stringify({token:tok,exp})); }catch(e){}
+}
+function loadToken(){
+  try{
+    const j=JSON.parse(localStorage.getItem('et_token')||'null');
+    if(j&&j.token&&j.exp>Date.now()) return j.token;
+  }catch(e){}
+  return null;
+}
+function clearToken(){ token=null; try{ localStorage.removeItem('et_token'); }catch(e){} }
+
+// interactive=true → show account chooser; false → silent (reuse session, no popup)
+function initAuth(interactive){
   if(!cfg) return;
-  if(!window.google){ setTimeout(initAuth,500); return; }
-  const client=google.accounts.oauth2.initTokenClient({
-    client_id:cfg.clientId,
-    scope:'https://www.googleapis.com/auth/spreadsheets',
-    callback:(r)=>{
-      if(r.access_token){
-        token=r.access_token;
-        setSynced(true);
-        document.getElementById('setup-banner').classList.add('hidden');
-        nav('dash');
-      } else {
-        setSynced(false);
-        toast('Auth failed — check Client ID','#ef4444');
+  if(!window.google){ setTimeout(()=>initAuth(interactive),500); return; }
+  if(!tokenClient){
+    tokenClient=google.accounts.oauth2.initTokenClient({
+      client_id:cfg.clientId,
+      scope:'https://www.googleapis.com/auth/spreadsheets',
+      callback:(r)=>{
+        if(r.access_token){
+          saveToken(r.access_token, r.expires_in);
+          setSynced(true);
+          document.getElementById('setup-banner').classList.add('hidden');
+          nav('dash');
+        } else {
+          setSynced(false);
+          toast('Auth failed — check Client ID','#ef4444');
+        }
+      },
+      error_callback:()=>{
+        // Silent attempt couldn't reuse the session → fall back to the picker once
+        if(!authInteractive){ authInteractive=true; tokenClient.requestAccessToken({prompt:''}); }
+        else { setSynced(false); }
       }
-    }
-  });
-  client.requestAccessToken();
+    });
+  }
+  authInteractive=!!interactive;
+  tokenClient.requestAccessToken({prompt: interactive?'':'none'});
 }
 function setSynced(on){
   const dot=document.getElementById('sync-dot');
@@ -1147,7 +1172,7 @@ async function sheetsGet(range){
   if(!token||!cfg) return null;
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent(range)}`;
   const r=await fetch(url,{headers:{Authorization:'Bearer '+token}});
-  if(r.status===401){token=null;setSynced(false);return null;}
+  if(r.status===401){clearToken();setSynced(false);initAuth(false);return null;}
   if(!r.ok) return null;
   return (await r.json()).values||[];
 }
@@ -1156,7 +1181,7 @@ async function sheetsBatchGet(ranges){
   const q=ranges.map(r=>`ranges=${encodeURIComponent(r)}`).join('&');
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values:batchGet?${q}`;
   const r=await fetch(url,{headers:{Authorization:'Bearer '+token}});
-  if(r.status===401){token=null;setSynced(false);return null;}
+  if(r.status===401){clearToken();setSynced(false);initAuth(false);return null;}
   if(!r.ok) return null;
   return (await r.json()).valueRanges;
 }
@@ -2182,7 +2207,15 @@ loadConfig();
 document.getElementById('mname').textContent=MONTHS[mi]; // sync pill to default month
 if(cfg){
   document.getElementById('setup-banner').classList.add('hidden');
-  setTimeout(initAuth,800);
+  const cached=loadToken();
+  if(cached){
+    // Valid cached token → connect instantly, no Google popup
+    token=cached;
+    setSynced(true);
+  } else {
+    // No valid token → try silent re-auth (reuses Google session, no picker)
+    setTimeout(()=>initAuth(false),800);
+  }
 }
 nav('dash');
 
