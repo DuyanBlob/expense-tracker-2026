@@ -1408,12 +1408,38 @@ function buildCumulative(rows, year, month){
   return{cum,days};
 }
 
+let _lastChartRows=null;
 function renderSpendChart(curRows,prevRows){
   const chartEl=document.getElementById('spend-chart');
   const legEl  =document.getElementById('chart-legend');
   const totalEl=document.getElementById('chart-total');
   const asofEl =document.getElementById('chart-asof');
   if(!chartEl) return;
+
+  // Remember rows so we can re-render when crossing the mobile/desktop breakpoint
+  _lastChartRows={curRows,prevRows};
+  if(!renderSpendChart._mq && window.matchMedia){
+    renderSpendChart._mq=window.matchMedia('(min-width:900px)');
+    renderSpendChart._mq.addEventListener('change',()=>{
+      if(_lastChartRows) renderSpendChart(_lastChartRows.curRows,_lastChartRows.prevRows);
+    });
+  }
+
+  // Desktop: the 320×108 SVG is scaled up to fill the wide column, which
+  // magnifies strokes/dots. Use thinner lines + smaller dots + non-scaling
+  // strokes there for a cleaner, more professional look. Mobile unchanged.
+  const isDesk = !!(window.matchMedia && window.matchMedia('(min-width:900px)').matches);
+  const ve     = isDesk ? ' vector-effect="non-scaling-stroke"' : '';
+  const SW_CUR = isDesk ? 1.4 : 2.2;   // current-month line
+  const SW_PREV= isDesk ? 0.9 : 1.5;   // previous-month line
+  const SW_VL  = isDesk ? 0.6 : 1;     // today vertical line
+  const SW_RING= isDesk ? 0.6 : 1;     // today dot outer ring
+  const SW_SCO = isDesk ? 1.1 : 1.8;   // scrubber dot ring
+  const R_OUT  = isDesk ? 3   : 5.5;   // today dot ring radius
+  const R_MID  = isDesk ? 1.8 : 3.2;   // today dot fill radius
+  const R_IN   = isDesk ? 0.6 : 1.2;   // today dot center highlight
+  const R_SCO  = isDesk ? 2   : 3;     // scrubber dot ring radius
+  const R_SCI  = isDesk ? 0.9 : 1.3;   // scrubber dot inner radius
 
   const curMD=new Date(MDATES[mi]+'T00:00:00');
   const curYear=curMD.getFullYear(), curMon=curMD.getMonth();
@@ -1487,7 +1513,7 @@ function renderSpendChart(curRows,prevRows){
       const scaledD=1+((d-1)/(Math.max(prevDays-1,1)))*(curDays-1);
       pts.push(`${xp(scaledD).toFixed(1)},${yp(prevCum[d]).toFixed(1)}`);
     }
-    prevLine=`<polyline points="${pts.join(' ')}" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+    prevLine=`<polyline points="${pts.join(' ')}" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="${SW_PREV}"${ve} stroke-linecap="round" stroke-linejoin="round"/>`;
   }
 
   // Current month line (up to today)
@@ -1506,11 +1532,11 @@ function renderSpendChart(curRows,prevRows){
 
   const areaD=`M${xp(1).toFixed(1)},${yp(0).toFixed(1)} L${curPtsFull.join(' L')} L${xp(curDays).toFixed(1)},${yp(0).toFixed(1)} Z`;
   const areaFill=isFutureMon?'':`<path d="${areaD}" fill="url(#cg${mi})"/>`;
-  const curLine=isFutureMon?'':`<polyline points="${curPtsFull.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
-  const todayVline=isFutureMon?'': `<line x1="${tx}" y1="${CT}" x2="${tx}" y2="${CT+CH}" stroke="rgba(255,255,255,.12)" stroke-width="1"/>`;
-  const todayDot=isFutureMon?'': `<circle cx="${tx}" cy="${ty}" r="5.5" fill="none" stroke="var(--amber)" stroke-width="1" opacity=".45"/>
-                  <circle cx="${tx}" cy="${ty}" r="3.2" fill="var(--amber)"/>
-                  <circle cx="${tx}" cy="${ty}" r="1.2" fill="#fff" opacity=".7"/>`;
+  const curLine=isFutureMon?'':`<polyline points="${curPtsFull.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="${SW_CUR}"${ve} stroke-linecap="round" stroke-linejoin="round"/>`;
+  const todayVline=isFutureMon?'': `<line x1="${tx}" y1="${CT}" x2="${tx}" y2="${CT+CH}" stroke="rgba(255,255,255,.12)" stroke-width="${SW_VL}"${ve}/>`;
+  const todayDot=isFutureMon?'': `<circle cx="${tx}" cy="${ty}" r="${R_OUT}" fill="none" stroke="var(--amber)" stroke-width="${SW_RING}"${ve} opacity=".45"/>
+                  <circle cx="${tx}" cy="${ty}" r="${R_MID}" fill="var(--amber)"/>
+                  <circle cx="${tx}" cy="${ty}" r="${R_IN}" fill="#fff" opacity=".7"/>`;
 
   // X-axis labels: 1, mid, last
   const mid=Math.round(curDays/2);
@@ -1522,9 +1548,9 @@ function renderSpendChart(curRows,prevRows){
   // Hover scrubber
   const scrubber=`
     <line id="sc-vline" x1="0" y1="${CT}" x2="0" y2="${CT+CH}"
-      stroke="rgba(255,255,255,.4)" stroke-width="1" stroke-dasharray="3,3" style="display:none"/>
-    <circle id="sc-dot-o" cx="0" cy="0" r="3" fill="var(--bg2)" stroke="var(--accent)" stroke-width="1.8" style="display:none"/>
-    <circle id="sc-dot-i" cx="0" cy="0" r="1.3" fill="var(--accent)" style="display:none"/>
+      stroke="rgba(255,255,255,.4)" stroke-width="${SW_VL}"${ve} stroke-dasharray="3,3" style="display:none"/>
+    <circle id="sc-dot-o" cx="0" cy="0" r="${R_SCO}" fill="var(--bg2)" stroke="var(--accent)" stroke-width="${SW_SCO}"${ve} style="display:none"/>
+    <circle id="sc-dot-i" cx="0" cy="0" r="${R_SCI}" fill="var(--accent)" style="display:none"/>
     <rect id="sc-capture" x="${CL}" y="${CT}" width="${CW}" height="${CH}"
       fill="transparent" style="cursor:crosshair;touch-action:none"/>
   `;
