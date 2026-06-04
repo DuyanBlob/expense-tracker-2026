@@ -791,6 +791,28 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
     margin-bottom:0;
   }
   .dash-right .recent-row + .recent-row { margin-top:8px; }
+
+  /* ── Desktop readability: brighten dim labels + bigger transaction text ── */
+  /* These labels use --text3 (very dark) which reads fine on small mobile
+     screens but is low-contrast on a large display. Lift to --text2. */
+  .slbl,
+  .bc-label,
+  .mc-label,
+  .donut-stat-lbl,
+  .bc-sub,
+  .recent-meta { color:var(--text2); }
+  .hdr-date { color:#9fb6d6; font-size:12px; }
+
+  /* Latest Transactions: larger, clearer */
+  .dash-right .recent-txns-hdr {
+    font-size:13px; letter-spacing:.08em; color:var(--text2);
+    padding-bottom:10px;
+  }
+  .dash-right .recent-ico { width:34px; height:34px; font-size:16px; }
+  .dash-right .recent-desc { font-size:14px; }
+  .dash-right .recent-meta { font-size:12px; }
+  .dash-right .recent-amt  { font-size:15px; }
+
   #p-dash > .pb { display:none; }
 }
 
