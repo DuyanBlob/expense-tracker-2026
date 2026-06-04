@@ -1126,7 +1126,7 @@ function initAuth(){
         token=r.access_token;
         setSynced(true);
         document.getElementById('setup-banner').classList.add('hidden');
-        loadData();
+        nav('dash');
       } else {
         setSynced(false);
         toast('Auth failed — check Client ID','#ef4444');
