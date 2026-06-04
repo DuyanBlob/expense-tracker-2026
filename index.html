@@ -1862,6 +1862,39 @@ function renderBudgetAlert(d){
   }
 }
 
+// Categories treated as fixed/periodic (billed once, not daily). Recurring-flagged
+// transactions in ANY category are also treated as fixed.
+const FIXED_CATS = new Set(['Utilities','Subscriptions']);
+
+// Variable-rate spend model: only extrapolate day-to-day (variable) spending,
+// counting fixed/periodic costs once instead of smearing them across every day.
+function computePace(d){
+  const rows = d.logRows || [];
+  const curMD=new Date(MDATES[mi]+'T00:00:00');
+  const cy=curMD.getFullYear(), cm=curMD.getMonth();
+  const daysInMonth=new Date(cy,cm+1,0).getDate();
+  const now=new Date();
+  const isCur=(now.getFullYear()===cy && now.getMonth()===cm);
+  const isFuture = cy>now.getFullYear() || (cy===now.getFullYear() && cm>now.getMonth());
+  const daysElapsed   = isCur ? Math.max(1, now.getDate()) : daysInMonth;
+  const daysRemaining = Math.max(0, daysInMonth - daysElapsed);
+
+  const totalActual = (d.catShares||[]).reduce((a,b)=>a+b,0);
+
+  // Fixed-so-far from the log: recurring-flagged OR in a fixed category (counted once each).
+  let fixedSoFar = 0;
+  rows.forEach(r=>{ if(r.recurring || FIXED_CATS.has(r.cat)) fixedSoFar += (r.share||0); });
+  fixedSoFar = Math.min(fixedSoFar, totalActual);          // never exceed the month total
+  const variableSoFar = Math.max(0, totalActual - fixedSoFar);
+
+  const variableDailyRate = variableSoFar / daysElapsed;   // the meaningful "per day" figure
+  // Fixed costs already incurred are kept as-is; only variable spending is projected forward.
+  const projMonthEnd = totalActual + variableDailyRate * daysRemaining;
+
+  return {daysInMonth,daysElapsed,daysRemaining,isCur,isFuture,
+          totalActual,fixedSoFar,variableSoFar,variableDailyRate,projMonthEnd};
+}
+
 // Auto-generated spending insights (projection, top category, trend, leftover)
 function renderInsights(d){
   const el=document.getElementById('insights-card');
@@ -1877,18 +1910,18 @@ function renderInsights(d){
   const isFuture = cy>now.getFullYear() || (cy===now.getFullYear() && cm>now.getMonth());
   const todayDay = isCur ? now.getDate() : daysInMonth;
 
-  // 1) Pace projection (current month only)
-  if(isCur && totalActual>0 && todayDay>0){
-    const dailyAvg=totalActual/todayDay;
-    const proj=totalActual+dailyAvg*(daysInMonth-todayDay);
+  // 1) Pace projection (current month only) — variable-rate model
+  if(isCur && totalActual>0){
+    const pace=computePace(d);
+    const dailyAvg=pace.variableDailyRate, proj=pace.projMonthEnd;
     const totalBudget=(d.catBudgets||[]).reduce((a,b)=>a+b,0);
     if(totalBudget>0){
       const diff=totalBudget-proj, onTrack=diff>=0;
       ins.push({ico:onTrack?'✅':'📈',
-        txt:`At <b>${fmt(dailyAvg)}/day</b>, you're on pace for <b>${fmt(proj)}</b> — <span class="${onTrack?'down':'up'}">${onTrack?fmt(diff)+' under':fmt(-diff)+' over'} budget</span>.`,
-        sub:`Day ${todayDay} of ${daysInMonth}`});
+        txt:`At <b>${fmt(dailyAvg)}/day</b> on variable spending, you're on pace for <b>${fmt(proj)}</b> — <span class="${onTrack?'down':'up'}">${onTrack?fmt(diff)+' under':fmt(-diff)+' over'} budget</span>.`,
+        sub:`Day ${pace.daysElapsed} of ${pace.daysInMonth} · fixed bills excluded from rate`});
     } else {
-      ins.push({ico:'📈',txt:`At <b>${fmt(dailyAvg)}/day</b>, projected month-end spend is <b>${fmt(proj)}</b>.`,sub:`Day ${todayDay} of ${daysInMonth}`});
+      ins.push({ico:'📈',txt:`At <b>${fmt(dailyAvg)}/day</b> on variable spending, projected month-end is <b>${fmt(proj)}</b>.`,sub:`Day ${pace.daysElapsed} of ${pace.daysInMonth}`});
     }
   }
 
@@ -2186,23 +2219,23 @@ function renderBudget(d){
       </div>`;
   }
 
-  // ── Projections
+  // ── Projections (variable-rate model: fixed bills counted once, not extrapolated)
   if(projEl){
-    const curMD=new Date(MDATES[mi]+'T00:00:00');
-    const curYear=curMD.getFullYear(), curMon=curMD.getMonth();
-    const daysInMonth=new Date(curYear,curMon+1,0).getDate();
-    const now=new Date();
-    const todayDay=(now.getFullYear()===curYear&&now.getMonth()===curMon)?now.getDate():daysInMonth;
-    const dailyAvg=todayDay>0?totalActual/todayDay:0;
-    const projMonthEnd=totalActual+dailyAvg*(daysInMonth-todayDay);
+    const pace=computePace(d);
+    const dailyAvg=pace.variableDailyRate;
+    const projMonthEnd=pace.projMonthEnd;
     const projVsBudget=totalBudget-projMonthEnd;
     const onTrack=projMonthEnd<=totalBudget;
-    const pctDone=Math.round((todayDay/daysInMonth)*100);
+    const pctDone=Math.round((pace.daysElapsed/pace.daysInMonth)*100);
 
     projEl.innerHTML=`
       <div class="proj-row">
-        <span class="proj-lbl">Daily avg spend</span>
+        <span class="proj-lbl">Variable spend / day</span>
         <span class="proj-val">${fmt(dailyAvg)}/day</span>
+      </div>
+      <div class="proj-row">
+        <span class="proj-lbl">Fixed costs so far</span>
+        <span class="proj-val">${fmt(pace.fixedSoFar)}</span>
       </div>
       <div class="proj-row">
         <span class="proj-lbl">Projected month-end</span>
@@ -2214,7 +2247,7 @@ function renderBudget(d){
       </div>
       <div class="proj-row">
         <span class="proj-lbl">Month progress</span>
-        <span class="proj-val">${pctDone}% · Day ${todayDay} of ${daysInMonth}</span>
+        <span class="proj-val">${pctDone}% · Day ${pace.daysElapsed} of ${pace.daysInMonth}</span>
       </div>`;
   }
 
