@@ -312,6 +312,62 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .lf-select:focus { border-color:var(--accent); color:var(--text); }
 .lf-select.active { border-color:var(--accent); color:var(--accent); background-color:rgba(59,130,246,.08); }
 
+/* ── LOG SEARCH ── */
+.lf-search-wrap { position:relative; margin-bottom:8px; }
+.lf-search {
+  width:100%; background:var(--bg3); border:1.5px solid var(--line2);
+  border-radius:10px; padding:10px 34px 10px 32px;
+  font-family:var(--sans); font-size:13px; color:var(--text);
+  outline:none; transition:border-color .15s;
+}
+.lf-search::placeholder { color:var(--text3); }
+.lf-search:focus { border-color:var(--accent); }
+.lf-search-ico { position:absolute; left:11px; top:50%; transform:translateY(-50%); font-size:12px; opacity:.6; pointer-events:none; }
+.lf-search-clear { position:absolute; right:7px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text3); font-size:17px; cursor:pointer; padding:2px 7px; line-height:1; border-radius:6px; }
+.lf-search-clear:hover { color:var(--text); background:var(--bg4); }
+
+/* ── CLICKABLE DRILL-DOWN ROWS ── */
+.crow.clickable { cursor:pointer; }
+.crow.clickable:hover { background:var(--bg3); }
+.cdrill { font-size:11px; color:var(--text3); margin-left:7px; opacity:0; transition:opacity .15s; }
+.crow.clickable:hover .cdrill { opacity:.9; }
+
+/* ── BUDGET "OVER" BADGE (dashboard category) ── */
+.cn-over {
+  font-size:8.5px; font-weight:700; color:var(--red);
+  background:rgba(244,63,94,.14); padding:1px 6px; border-radius:5px;
+  margin-left:7px; letter-spacing:.05em; vertical-align:middle;
+  text-transform:uppercase;
+}
+
+/* ── DASHBOARD ALERT BANNER ── */
+.dash-alert {
+  display:flex; align-items:center; gap:10px;
+  margin:12px 18px 0; padding:11px 14px;
+  background:rgba(244,63,94,.1); border:1px solid rgba(244,63,94,.32);
+  border-radius:var(--r);
+}
+.dash-alert.warn { background:rgba(245,158,11,.1); border-color:rgba(245,158,11,.32); }
+.dash-alert-ico { font-size:16px; flex-shrink:0; }
+.dash-alert-txt { font-size:12px; color:var(--text); font-weight:500; flex:1; line-height:1.45; }
+.dash-alert-txt b { color:var(--red); }
+.dash-alert.warn .dash-alert-txt b { color:var(--amber); }
+
+/* ── INSIGHTS CARD ── */
+.insights-card { margin:12px 18px 0; display:flex; flex-direction:column; gap:8px; }
+.insight {
+  display:flex; align-items:flex-start; gap:11px;
+  background:var(--bg2); border:1px solid var(--line);
+  border-radius:var(--r-sm); padding:12px 14px;
+}
+.insight-ico { font-size:16px; flex-shrink:0; line-height:1.35; }
+.insight-body { flex:1; min-width:0; }
+.insight-txt { font-size:12.5px; color:var(--text); line-height:1.45; }
+.insight-txt b { font-weight:700; }
+.insight-txt .up   { color:var(--red);   font-weight:700; }
+.insight-txt .down { color:var(--green); font-weight:700; }
+.insight-sub { font-size:10px; color:var(--text3); margin-top:3px; font-family:var(--mono); }
+
 /* ── LOG ROW ACTIONS ── */
 .log-actions {
   display:none; gap:8px; padding-top:10px; margin-top:8px;
@@ -611,6 +667,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   #p-dash.active { display:flex; flex-direction:column; }
   #p-dash.active > .dash-left,
   #p-dash.active > .dash-right { display:contents; }
+  #p-dash.active .dash-alert { order:-4; }
   #p-dash.active > #setup-banner { order:-3; }
   #p-dash.active .dash-top { order:-2; }
   #p-dash.active .dash-right > .slbl,
@@ -748,6 +805,9 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   .dash-left > #cat-card { flex-shrink:0; margin:0; }
   /* CC: natural height, no individual scroll */
   .dash-left > #cc-card  { flex-shrink:0; margin:0; }
+  /* Budget alert + insights cards in left scroll column */
+  .dash-left > .dash-alert,
+  .dash-left > .insights-card { flex-shrink:0; margin:0; }
 
   /* RIGHT col: chart at natural aspect ratio (no stretching) */
   #p-dash > .dash-right {
@@ -858,6 +918,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
       <button class="banner-cta" onclick="openSetup()">Connect →</button>
     </div>
     <div class="dash-left">
+      <div class="dash-alert" id="dash-alert" style="display:none"></div>
       <div class="dash-top">
         <div class="bigcard" id="h-income-card">
           <div class="bc-label">Total Income</div>
@@ -880,6 +941,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
           <div class="bc-sub" id="h-left-sub"></div>
         </div>
       </div>
+      <div class="insights-card" id="insights-card"></div>
       <div class="slbl">Spending Breakdown</div>
       <div class="donut-card" id="donut-card"></div>
       <div class="lcard" id="cat-card"></div>
@@ -1111,7 +1173,7 @@ const ROWS = {
 // ─── STATE ────────────────────────────────────────────────
 let mi=1, curView='dash', token=null, cfg=null, loading=false, slideDir=0;
 let tokenClient=null, authInteractive=false;
-let logFilterCat=null, logFilterCC=null, logSort='date-desc';
+let logFilterCat=null, logFilterCC=null, logSort='date-desc', logSearch='';
 let editingSheetRow=null;
 const cache={}, cacheTs={};
 const CACHE_TTL=300000; // 5 min — data only changes via in-app edits (which invalidate)
@@ -1701,14 +1763,20 @@ function renderDash(d){
 
   // Spending breakdown — use map(c,i) so Travel's original index is preserved
   const maxS=Math.max(...d.catShares,d.adjRent,1);
+  const budgets=d.catBudgets||[];
   let html=CATS.map((c,i)=>{
     const sh=d.catShares[i];
     if(!sh||sh<=0) return '';
     const col=CAT_COL[c]||'#6366f1',bw=Math.round((sh/maxS)*100);
-    return`<div class="crow">
+    const budget=budgets[i]||0;
+    const over=budget>0 && sh>budget;
+    const barCol=over?'var(--red)':col;
+    const overBadge=over?'<span class="cn-over">over</span>':'';
+    const esc=c.replace(/'/g,"\\'");
+    return`<div class="crow clickable" onclick="drillTo('cat','${esc}')" title="View ${c} transactions">
       <div class="ci" style="background:${col}22">${CAT_ICON[c]||'📦'}</div>
-      <div class="cm"><div class="cn">${c}</div>
-        <div class="cbar"><div class="cbfill" style="width:${bw}%;background:${col}"></div></div></div>
+      <div class="cm"><div class="cn">${c}${overBadge}<span class="cdrill">›</span></div>
+        <div class="cbar"><div class="cbfill" style="width:${bw}%;background:${barCol}"></div></div></div>
       <div class="cr"><div class="camt">${fmt(sh)}</div><div class="cpct">${pct(d.catPcts[i])}</div></div>
     </div>`;
   }).join('');
@@ -1740,9 +1808,10 @@ function renderDash(d){
       const col=CC_COL[c]||'#6b7280';
       const svg=CC_SVG[c];
       const ico=CC_ICON[c]||'💳';
-      return`<div class="crow">
+      const esc=c.replace(/'/g,"\\'");
+      return`<div class="crow clickable" onclick="drillTo('cc','${esc}')" title="View ${c} transactions">
         <div class="ci" style="${svg?'':'background:'+col+'22;font-size:17px'}">${svg||ico}</div>
-        <div class="cm"><div class="cn" style="font-weight:600">${c}</div></div>
+        <div class="cm"><div class="cn" style="font-weight:600">${c}<span class="cdrill">›</span></div></div>
         <div class="cr"><div class="camt" style="color:${col}">${fmt(d.ccAmts[i])}</div></div>
       </div>`;
     }).join('') : '<div class="empty"><div class="empty-icon">💳</div><div class="empty-text">No CC charges yet</div></div>')+
@@ -1751,9 +1820,121 @@ function renderDash(d){
       <div class="cm"><div class="cn accent" style="font-weight:700">Total CC Charges</div></div>
       <div class="cr"><div class="camt accent">${fmt(d.ccTotal)}</div></div>
     </div>`;
+
+  renderBudgetAlert(d);
+  renderInsights(d);
 }
 
-function renderLog(allRows){
+// Jump from a dashboard category/card row to the filtered Expense Log
+function drillTo(type,val){
+  logSearch='';
+  logSort='date-desc';
+  if(type==='cat'){ logFilterCat=val; logFilterCC=null; }
+  else if(type==='cc'){ logFilterCC=val; logFilterCat=null; }
+  nav('log');
+}
+
+// Over-budget banner at the top of the dashboard
+function renderBudgetAlert(d){
+  const el=document.getElementById('dash-alert');
+  if(!el) return;
+  const budgets=d.catBudgets||[];
+  const totalBudget=budgets.reduce((a,b)=>a+b,0);
+  const totalActual=(d.catShares||[]).reduce((a,b)=>a+b,0);
+  const overCats=CATS.map((c,i)=>({c,over:(d.catShares[i]||0)-(budgets[i]||0),budget:budgets[i]||0}))
+    .filter(x=>x.budget>0 && x.over>0)
+    .sort((a,b)=>b.over-a.over);
+
+  if(totalBudget>0 && totalActual>totalBudget){
+    const overBy=totalActual-totalBudget;
+    const names=overCats.slice(0,2).map(x=>x.c).join(', ');
+    el.className='dash-alert';
+    el.innerHTML=`<span class="dash-alert-ico">🚨</span><span class="dash-alert-txt">You're <b>${fmt(overBy)} over</b> your total budget this month${names?` · worst: ${names}`:''}</span>`;
+    el.style.display='';
+  } else if(overCats.length){
+    const top=overCats[0];
+    el.className='dash-alert warn';
+    el.innerHTML=`<span class="dash-alert-ico">⚠️</span><span class="dash-alert-txt"><b>${top.c}</b> is ${fmt(top.over)} over budget${overCats.length>1?` · +${overCats.length-1} more`:''}</span>`;
+    el.style.display='';
+  } else {
+    el.style.display='none';
+    el.innerHTML='';
+  }
+}
+
+// Auto-generated spending insights (projection, top category, trend, leftover)
+function renderInsights(d){
+  const el=document.getElementById('insights-card');
+  if(!el) return;
+  const ins=[];
+  const totalActual=(d.catShares||[]).reduce((a,b)=>a+b,0);
+
+  const curMD=new Date(MDATES[mi]+'T00:00:00');
+  const cy=curMD.getFullYear(), cm=curMD.getMonth();
+  const daysInMonth=new Date(cy,cm+1,0).getDate();
+  const now=new Date();
+  const isCur=(now.getFullYear()===cy && now.getMonth()===cm);
+  const isFuture = cy>now.getFullYear() || (cy===now.getFullYear() && cm>now.getMonth());
+  const todayDay = isCur ? now.getDate() : daysInMonth;
+
+  // 1) Pace projection (current month only)
+  if(isCur && totalActual>0 && todayDay>0){
+    const dailyAvg=totalActual/todayDay;
+    const proj=totalActual+dailyAvg*(daysInMonth-todayDay);
+    const totalBudget=(d.catBudgets||[]).reduce((a,b)=>a+b,0);
+    if(totalBudget>0){
+      const diff=totalBudget-proj, onTrack=diff>=0;
+      ins.push({ico:onTrack?'✅':'📈',
+        txt:`At <b>${fmt(dailyAvg)}/day</b>, you're on pace for <b>${fmt(proj)}</b> — <span class="${onTrack?'down':'up'}">${onTrack?fmt(diff)+' under':fmt(-diff)+' over'} budget</span>.`,
+        sub:`Day ${todayDay} of ${daysInMonth}`});
+    } else {
+      ins.push({ico:'📈',txt:`At <b>${fmt(dailyAvg)}/day</b>, projected month-end spend is <b>${fmt(proj)}</b>.`,sub:`Day ${todayDay} of ${daysInMonth}`});
+    }
+  }
+
+  // 2) Top category
+  let topI=-1,topV=0;
+  (d.catShares||[]).forEach((v,i)=>{ if(v>topV){topV=v;topI=i;} });
+  if(topI>=0 && topV>0){
+    const c=CATS[topI];
+    ins.push({ico:CAT_ICON[c]||'📦',txt:`Biggest category is <b>${c}</b> at <b>${fmt(topV)}</b> (${pct(d.catPcts[topI])} of spending).`});
+  }
+
+  // 3) Trend vs last month (needs previous month's full data in cache)
+  const prev = mi>0 ? cache[MONTHS[mi-1]] : null;
+  if(prev && prev.catShares){
+    let bestI=-1,bestCh=0;
+    CATS.forEach((c,i)=>{
+      const cur=d.catShares[i]||0, pv=prev.catShares[i]||0;
+      if(pv>=5 && cur>=5){
+        const ch=(cur-pv)/pv;
+        if(Math.abs(ch)>Math.abs(bestCh)){ bestCh=ch; bestI=i; }
+      }
+    });
+    if(bestI>=0 && Math.abs(bestCh)>=0.15){
+      const c=CATS[bestI], up=bestCh>0;
+      ins.push({ico:up?'🔺':'🔻',
+        txt:`<b>${c}</b> is <span class="${up?'up':'down'}">${up?'up':'down'} ${Math.round(Math.abs(bestCh)*100)}%</span> vs ${MONTHS[mi-1]} (${fmt(prev.catShares[bestI])} → ${fmt(d.catShares[bestI])}).`});
+    }
+  }
+
+  // 4) Leftover health
+  if(d.leftover!=null){
+    const neg=d.leftover<0;
+    ins.push({ico:neg?'🛑':'💰',
+      txt:`You have <b class="${neg?'up':'down'}">${fmt(d.leftover)}</b> ${neg?'over-spent':'left over'} this month (${pct(d.leftoverPct)} of income).`});
+  }
+
+  if(isFuture || !ins.length){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display='';
+  el.innerHTML=ins.slice(0,3).map(x=>`<div class="insight">
+    <span class="insight-ico">${x.ico}</span>
+    <div class="insight-body"><div class="insight-txt">${x.txt}</div>${x.sub?`<div class="insight-sub">${x.sub}</div>`:''}</div>
+  </div>`).join('');
+}
+
+function renderLog(allRows, opts){
+  const keepFilter = opts && opts.keepFilter;
   const el      = document.getElementById('log-card');
   const filterEl= document.getElementById('log-filter-wrap');
 
@@ -1767,10 +1948,16 @@ function renderLog(allRows){
   const usedCats=[...new Set(allRows.map(r=>r.cat).filter(Boolean))].sort();
   const usedCCs =[...new Set(allRows.map(r=>r.cc ).filter(Boolean))].sort();
 
-  if(filterEl){
+  if(filterEl && !keepFilter){
     const catOpts=usedCats.map(c=>`<option value="${c}"${logFilterCat===c?' selected':''}>${c}</option>`).join('');
     const ccOpts =usedCCs .map(c=>`<option value="${c}"${logFilterCC ===c?' selected':''}>${c}</option>`).join('');
-    filterEl.innerHTML=`<div class="lf-controls">
+    const sq=(logSearch||'').replace(/"/g,'&quot;');
+    filterEl.innerHTML=`<div class="lf-search-wrap">
+      <span class="lf-search-ico">🔍</span>
+      <input class="lf-search" type="text" placeholder="Search description, category, card, notes…" value="${sq}" oninput="setLogSearch(this.value)">
+      <button class="lf-search-clear" onclick="clearLogSearch()" style="${logSearch?'':'display:none'}">×</button>
+    </div>
+    <div class="lf-controls">
       <select class="lf-select${logFilterCat?' active':''}" onchange="setLogFilter('cat',this.value)">
         <option value="">All Categories</option>${catOpts}
       </select>
@@ -1793,9 +1980,18 @@ function renderLog(allRows){
   if(logFilterCat) rows=rows.filter(r=>r.cat===logFilterCat);
   if(logFilterCC==='__sharon__') rows=rows.filter(r=>!r.cc && r.split<1);
   else if(logFilterCC) rows=rows.filter(r=>r.cc===logFilterCC);
+  if(logSearch && logSearch.trim()){
+    const q=logSearch.trim().toLowerCase();
+    rows=rows.filter(r=>
+      (r.desc ||'').toLowerCase().includes(q) ||
+      (r.cat  ||'').toLowerCase().includes(q) ||
+      (r.cc   ||'').toLowerCase().includes(q) ||
+      (r.notes||'').toLowerCase().includes(q)
+    );
+  }
 
   if(!rows.length){
-    el.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">No matching expenses</div><div class="empty-sub">Try a different filter</div></div>`;
+    el.innerHTML=`<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">No matching expenses</div><div class="empty-sub">Try a different search or filter</div></div>`;
     return;
   }
 
@@ -1878,6 +2074,22 @@ function setLogSort(val){
   logSort=val;
   const cached=cache[MONTHS[mi]];
   if(cached) renderLog(cached.logRows||[]);
+}
+
+function setLogSearch(val){
+  logSearch=val;
+  const cached=cache[MONTHS[mi]];
+  // keepFilter:true re-renders only the results so the input keeps focus while typing
+  if(cached) renderLog(cached.logRows||[], {keepFilter:true});
+  const clr=document.querySelector('.lf-search-clear');
+  if(clr) clr.style.display=val?'':'none';
+}
+
+function clearLogSearch(){
+  logSearch='';
+  const cached=cache[MONTHS[mi]];
+  if(cached) renderLog(cached.logRows||[]); // full re-render resets the input value
+  const inp=document.querySelector('.lf-search'); if(inp) inp.focus();
 }
 
 function toggleRowActions(e,row){
@@ -2092,7 +2304,7 @@ function nav(v){
 }
 function chMonth(d){
   mi=Math.max(0,Math.min(MONTHS.length-1,mi+d));
-  logFilterCat=null; logFilterCC=null; logSort='date-desc';
+  logFilterCat=null; logFilterCC=null; logSort='date-desc'; logSearch='';
   slideDir=d;
   document.getElementById('mname').textContent=MONTHS[mi];
   if(token){ if(isCached(MONTHS[mi])) renderAll(cache[MONTHS[mi]]); else loadData(); }
