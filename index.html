@@ -1119,7 +1119,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
       <div class="sgrp-hdr">IRA Contribution Limit</div>
       <div class="sgrp-body">
         <div class="fg">
-          <label>Annual Max ($)</label>
+          <label id="ira-year-label">Annual Max</label>
           <input type="number" id="cfg-ira-max" placeholder="7000" min="0" max="30000" step="500" onblur="saveIraSettings()">
         </div>
         <div class="fg-row">
@@ -1295,51 +1295,58 @@ function isCached(m){return cache[m]&&(Date.now()-cacheTs[m])<CACHE_TTL;}
 function invalidate(m){delete cache[m];}
 
 // ─── CONFIG ───────────────────────────────────────────────
+function iraYear(){ return MONTHS[mi].split(' ')[1]; }
 function loadIraSettings(){
-  const max=localStorage.getItem('et_ira_max');
-  const maxed=localStorage.getItem('et_ira_maxed')==='true';
+  const y=iraYear();
+  const max=localStorage.getItem('et_ira_max_'+y);
+  const maxed=localStorage.getItem('et_ira_maxed_'+y)==='true';
   document.getElementById('cfg-ira-max').value=max||'';
   document.getElementById('cfg-ira-maxed').checked=maxed;
+  const lbl=document.getElementById('ira-year-label');
+  if(lbl) lbl.textContent='Annual Max — '+y;
 }
 function saveIraSettings(){
+  const y=iraYear();
   const max=document.getElementById('cfg-ira-max').value.trim();
   const maxed=document.getElementById('cfg-ira-maxed').checked;
-  if(max) localStorage.setItem('et_ira_max',max);
-  else localStorage.removeItem('et_ira_max');
-  localStorage.setItem('et_ira_maxed',String(maxed));
-  // re-render invest page if data is loaded
+  if(max) localStorage.setItem('et_ira_max_'+y,max);
+  else localStorage.removeItem('et_ira_max_'+y);
+  localStorage.setItem('et_ira_maxed_'+y,String(maxed));
   const cached=cache[MONTHS[mi]];
   if(cached) renderInvest(cached);
 }
 function computeIraYtd(){
-  const curYear=MONTHS[mi].split(' ')[1];
+  const y=iraYear();
   let ytd=0;
   for(const mn of MONTHS){
-    if(mn.split(' ')[1]!==curYear) continue;
+    if(mn.split(' ')[1]!==y) continue;
     if(cache[mn]) ytd+=cache[mn].vanAdd||0;
   }
   return ytd;
 }
 function toggleIraMaxed(){
-  const cur=localStorage.getItem('et_ira_maxed')==='true';
-  localStorage.setItem('et_ira_maxed',String(!cur));
+  const y=iraYear();
+  const cur=localStorage.getItem('et_ira_maxed_'+y)==='true';
+  localStorage.setItem('et_ira_maxed_'+y,String(!cur));
   document.getElementById('cfg-ira-maxed').checked=!cur;
   const cached=cache[MONTHS[mi]];
   if(cached) renderInvest(cached);
 }
 function renderIraRow(d){
-  const iraMax=Number(localStorage.getItem('et_ira_max')||7000);
-  const iraMaxed=localStorage.getItem('et_ira_maxed')==='true';
+  const y=iraYear();
+  const iraMax=Number(localStorage.getItem('et_ira_max_'+y)||7000);
+  const iraMaxed=localStorage.getItem('et_ira_maxed_'+y)==='true';
   const ytd=computeIraYtd();
   const pct=iraMax>0?Math.min(100,ytd/iraMax*100):0;
   const isMaxed=iraMaxed||pct>=100;
+  const barW=isMaxed?100:pct;
   const toggleBtn=isMaxed
     ?`<button class="ira-toggle-btn maxed" onclick="toggleIraMaxed()">✓ Maxed</button>`
     :`<button class="ira-toggle-btn" onclick="toggleIraMaxed()">Mark Maxed</button>`;
   return `<div class="crow"><div class="ci" style="background:rgba(154,143,232,.12)">📊</div>
     <div class="cm">
       <div class="cn" style="font-weight:700;display:flex;align-items:center;gap:8px">Vanguard IRA ${toggleBtn}</div>
-      <div class="ira-bar"><div class="ira-bar-fill" style="width:${pct.toFixed(1)}%;${isMaxed?'background:var(--green)':''}"></div></div>
+      <div class="ira-bar"><div class="ira-bar-fill" style="width:${barW.toFixed(1)}%;${isMaxed?'background:var(--green)':''}"></div></div>
       <div class="cpct">YTD ${fmt(ytd)} / ${fmt(iraMax)}${d.vanAdd>0?' · +'+fmt(d.vanAdd)+' this month':''}</div>
     </div>
     <div class="cr"><div class="camt teal">${fmt(d.vanBal)}</div></div></div>`;
@@ -2661,6 +2668,7 @@ function nav(v){
   });
   document.getElementById('fab').classList.toggle('show',v==='log');
   document.getElementById('scroll').scrollTop=0;
+  if(v==='settings') loadIraSettings();
   if(token){if(isCached(MONTHS[mi]))renderAll(cache[MONTHS[mi]]);else loadData();}
 }
 function syncNav(){
