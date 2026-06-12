@@ -70,19 +70,34 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   position:absolute; left:50%; transform:translateX(-50%);
   display:none;
 }
-.mwrap { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.mwrap { position:relative; }
 .mpill {
   display:flex; align-items:center;
   background:var(--bg3); border:1px solid var(--line2);
   border-radius:11px; overflow:hidden; height:38px;
 }
-.mpill-nav { display:flex; align-items:center; }
-.ypill { display:flex; align-items:center; gap:1px; }
+.mname {
+  font-family:var(--mono); font-size:11px; font-weight:500;
+  color:var(--text); min-width:44px; text-align:center; letter-spacing:.03em;
+  background:none; border:none; cursor:pointer; padding:0;
+  transition:color .12s;
+}
+.mname:hover { color:var(--accent); }
+.ypicker {
+  position:absolute; top:calc(100% + 7px); left:50%;
+  transform:translateX(-50%) translateY(-4px);
+  background:var(--bg3); border:1px solid var(--line2);
+  border-radius:9px; padding:5px 8px;
+  display:flex; align-items:center; gap:1px; z-index:200;
+  opacity:0; pointer-events:none; transition:opacity .12s, transform .12s;
+  white-space:nowrap;
+}
+.ypicker.open { opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0); }
 .ysep { font-size:8px; color:var(--line2); font-family:var(--mono); pointer-events:none; padding:0 2px; }
 .ybtn {
-  font-family:var(--mono); font-size:9px; font-weight:500; letter-spacing:.04em;
-  padding:2px 5px; background:none; border:none;
-  color:var(--text3); cursor:pointer; transition:color .15s;
+  font-family:var(--mono); font-size:10px; font-weight:500; letter-spacing:.04em;
+  padding:3px 7px; background:none; border:none;
+  color:var(--text3); cursor:pointer; transition:color .15s; border-radius:5px;
 }
 .ybtn:hover { color:var(--text2); }
 .ybtn.active { color:var(--accent); font-weight:600; }
@@ -93,10 +108,6 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   transition: background .12s, color .12s; flex-shrink:0;
 }
 .mbtn:active { background:var(--bg4); color:var(--accent); }
-.mname {
-  font-family:var(--mono); font-size:11px; font-weight:500;
-  color:var(--text); min-width:70px; text-align:center; letter-spacing:.03em;
-}
 .sync-wrap {
   display:flex; align-items:center; gap:5px;
   background:var(--bg3); border:1px solid var(--line2);
@@ -917,17 +928,17 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   <div class="hdr-date" id="hdr-date"></div>
   <div class="hdr-r">
     <div class="mwrap">
-      <div class="mpill mpill-nav">
+      <div class="mpill">
         <button class="mbtn" onclick="chMonth(-1)">‹</button>
-        <span class="mname" id="mname">May 2026</span><!-- updated by JS on init -->
+        <button class="mname" id="mname" onclick="toggleYearPicker(event)">May</button>
         <button class="mbtn" onclick="chMonth(1)">›</button>
       </div>
-      <div class="ypill">
-        <button class="ybtn active" id="ybtn-2026" data-year="2026" onclick="chYear(2026)">2026</button>
+      <div class="ypicker" id="ypicker">
+        <button class="ybtn active" id="ybtn-2026" data-year="2026" onclick="pickYear(2026)">2026</button>
         <span class="ysep">·</span>
-        <button class="ybtn" id="ybtn-2027" data-year="2027" onclick="chYear(2027)">2027</button>
+        <button class="ybtn" id="ybtn-2027" data-year="2027" onclick="pickYear(2027)">2027</button>
         <span class="ysep">·</span>
-        <button class="ybtn" id="ybtn-2028" data-year="2028" onclick="chYear(2028)">2028</button>
+        <button class="ybtn" id="ybtn-2028" data-year="2028" onclick="pickYear(2028)">2028</button>
       </div>
     </div>
     <div class="sync-wrap">
@@ -2551,21 +2562,33 @@ function nav(v){
 }
 function syncNav(){
   const m=MONTHS[mi];
-  document.getElementById('mname').textContent=m;
-  const y=m.split(' ')[1];
+  const [mon,y]=m.split(' ');
+  document.getElementById('mname').textContent=mon;
   document.querySelectorAll('.ybtn').forEach(b=>b.classList.toggle('active',b.dataset.year===y));
   const hY=document.getElementById('hdr-year');
   if(hY) hY.textContent=y;
 }
-function chYear(y){
-  const idx=MONTHS.findIndex(m=>m.endsWith(String(y)));
+function toggleYearPicker(e){
+  e.stopPropagation();
+  document.getElementById('ypicker').classList.toggle('open');
+}
+function pickYear(y){
+  document.getElementById('ypicker').classList.remove('open');
+  const curMon=MONTHS[mi].split(' ')[0];
+  const curYear=Number(MONTHS[mi].split(' ')[1]);
+  const sameMonth=MONTHS.findIndex(m=>m===curMon+' '+y);
+  const firstOfYear=MONTHS.findIndex(m=>m.endsWith(String(y)));
+  const idx=sameMonth>=0?sameMonth:firstOfYear;
   if(idx<0) return;
+  slideDir=y>curYear?1:-1;
   mi=idx;
   logFilterCat=null; logFilterCC=null; logSort='date-desc'; logSearch='';
-  slideDir=1; syncNav();
+  syncNav();
   if(token){ if(isCached(MONTHS[mi])) renderAll(cache[MONTHS[mi]]); else loadData(); }
   else animateSlide();
 }
+function chYear(y){ pickYear(y); }
+document.addEventListener('click',()=>document.getElementById('ypicker').classList.remove('open'));
 function chMonth(d){
   mi=Math.max(0,Math.min(MONTHS.length-1,mi+d));
   logFilterCat=null; logFilterCC=null; logSort='date-desc'; logSearch='';
