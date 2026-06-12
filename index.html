@@ -1336,9 +1336,10 @@ function renderIraRow(d){
   const y=iraYear();
   const iraMax=Number(localStorage.getItem('et_ira_max_'+y)||7000);
   const iraMaxed=localStorage.getItem('et_ira_maxed_'+y)==='true';
-  const ytd=computeIraYtd();
-  const pct=iraMax>0?Math.min(100,ytd/iraMax*100):0;
+  const rawYtd=computeIraYtd();
+  const pct=iraMax>0?Math.min(100,rawYtd/iraMax*100):0;
   const isMaxed=iraMaxed||pct>=100;
+  const ytd=isMaxed?iraMax:rawYtd;
   const barW=isMaxed?100:pct;
   const toggleBtn=isMaxed
     ?`<button class="ira-toggle-btn maxed" onclick="toggleIraMaxed()">✓ Maxed</button>`
@@ -1570,7 +1571,18 @@ async function loadData(){
   renderAll(d);
 }
 
-function renderAll(d){ renderDash(d); renderLog(d.logRows||[]); renderBudget(d); renderInvest(d); renderSharon(d); renderSpendChart(d.logRows||[], d.prevLogRows||[]); renderRecentTxns(d.logRows||[]); animateSlide(); }
+// Lazy rendering: only the visible page renders; others are marked dirty and
+// render on first visit. renderAll = "data changed, redraw current, defer rest".
+const VIEW_RENDERERS={
+  dash:  d=>{ renderDash(d); renderSpendChart(d.logRows||[], d.prevLogRows||[]); renderRecentTxns(d.logRows||[]); },
+  log:   d=>renderLog(d.logRows||[]),
+  budget:d=>renderBudget(d),
+  invest:d=>renderInvest(d),
+  sharon:d=>renderSharon(d),
+};
+let dirtyViews=new Set();
+function renderView(v,d){ const fn=VIEW_RENDERERS[v]; if(fn){ fn(d); dirtyViews.delete(v); } }
+function renderAll(d){ dirtyViews=new Set(Object.keys(VIEW_RENDERERS)); renderView(curView,d); animateSlide(); }
 
 function renderRecentTxns(logRows){
   const el=document.getElementById('recent-txns');
@@ -2001,6 +2013,7 @@ function drillTo(type,val){
   logSort='date-desc';
   if(type==='cat'){ logFilterCat=val; logFilterCC=null; }
   else if(type==='cc'){ logFilterCC=val; logFilterCat=null; }
+  dirtyViews.add('log'); // filter changed → force re-render on arrival
   nav('log');
 }
 
@@ -2648,7 +2661,8 @@ async function editBudget(catIdx,el){
     } else {
       toast('Not connected to Google Sheet','#cf5468');
     }
-    // Re-render summary cards with updated value
+    // Re-render summary cards with updated value; dash shows budget bars too
+    dirtyViews.add('dash');
     if(cached) renderBudget(cached);
   }
 
@@ -2668,8 +2682,10 @@ function nav(v){
   });
   document.getElementById('fab').classList.toggle('show',v==='log');
   document.getElementById('scroll').scrollTop=0;
-  if(v==='settings') loadIraSettings();
-  if(token){if(isCached(MONTHS[mi]))renderAll(cache[MONTHS[mi]]);else loadData();}
+  if(token){
+    if(isCached(MONTHS[mi])){ if(dirtyViews.has(v)) renderView(v,cache[MONTHS[mi]]); }
+    else loadData();
+  }
 }
 function syncNav(){
   const m=MONTHS[mi];
@@ -2678,6 +2694,7 @@ function syncNav(){
   document.querySelectorAll('.ybtn').forEach(b=>b.classList.toggle('active',b.dataset.year===y));
   const hY=document.getElementById('hdr-year');
   if(hY) hY.textContent=y;
+  loadIraSettings(); // keep Settings → IRA in sync with the viewed year
 }
 function toggleYearPicker(e){
   e.stopPropagation();
@@ -2861,8 +2878,7 @@ function toast(msg,color='#1e2440'){
 
 // ─── INIT ─────────────────────────────────────────────────
 loadConfig();
-loadIraSettings();
-syncNav(); // sync pill + year tabs to default month
+syncNav(); // sync pill + year tabs + IRA settings to default month
 if(cfg){
   document.getElementById('setup-banner').classList.add('hidden');
   const cached=loadToken();
