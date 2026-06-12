@@ -70,21 +70,22 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   position:absolute; left:50%; transform:translateX(-50%);
   display:none;
 }
+.mwrap { display:flex; flex-direction:column; align-items:center; gap:4px; }
 .mpill {
-  display:flex; align-items:center; flex-direction:column; justify-content:center;
+  display:flex; align-items:center;
   background:var(--bg3); border:1px solid var(--line2);
-  border-radius:11px; overflow:hidden; padding:4px 0 2px;
+  border-radius:11px; overflow:hidden; height:38px;
 }
 .mpill-nav { display:flex; align-items:center; }
-.ypill { display:flex; gap:3px; padding:0 8px 2px; }
+.ypill { display:flex; align-items:center; gap:1px; }
+.ysep { font-size:8px; color:var(--line2); font-family:var(--mono); pointer-events:none; padding:0 2px; }
 .ybtn {
-  font-family:var(--mono); font-size:9px; font-weight:600; letter-spacing:.05em;
-  padding:2px 7px; border-radius:5px; background:transparent;
-  border:1px solid transparent; color:var(--text3); cursor:pointer;
-  transition:all .15s;
+  font-family:var(--mono); font-size:9px; font-weight:500; letter-spacing:.04em;
+  padding:2px 5px; background:none; border:none;
+  color:var(--text3); cursor:pointer; transition:color .15s;
 }
-.ybtn:hover { background:var(--bg4); color:var(--text2); }
-.ybtn.active { background:rgba(123,133,240,.18); border-color:rgba(123,133,240,.35); color:var(--accent); }
+.ybtn:hover { color:var(--text2); }
+.ybtn.active { color:var(--accent); font-weight:600; }
 .mbtn {
   background:none; border:none; color:var(--text2); font-size:20px;
   cursor:pointer; width:38px; height:38px;
@@ -915,16 +916,18 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   </div>
   <div class="hdr-date" id="hdr-date"></div>
   <div class="hdr-r">
-    <div class="mpill">
-      <div class="ypill">
-        <button class="ybtn active" id="ybtn-2026" data-year="2026" onclick="chYear(2026)">2026</button>
-        <button class="ybtn" id="ybtn-2027" data-year="2027" onclick="chYear(2027)">2027</button>
-        <button class="ybtn" id="ybtn-2028" data-year="2028" onclick="chYear(2028)">2028</button>
-      </div>
-      <div class="mpill-nav">
+    <div class="mwrap">
+      <div class="mpill mpill-nav">
         <button class="mbtn" onclick="chMonth(-1)">‹</button>
         <span class="mname" id="mname">May 2026</span><!-- updated by JS on init -->
         <button class="mbtn" onclick="chMonth(1)">›</button>
+      </div>
+      <div class="ypill">
+        <button class="ybtn active" id="ybtn-2026" data-year="2026" onclick="chYear(2026)">2026</button>
+        <span class="ysep">·</span>
+        <button class="ybtn" id="ybtn-2027" data-year="2027" onclick="chYear(2027)">2027</button>
+        <span class="ysep">·</span>
+        <button class="ybtn" id="ybtn-2028" data-year="2028" onclick="chYear(2028)">2028</button>
       </div>
     </div>
     <div class="sync-wrap">
