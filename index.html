@@ -1285,14 +1285,22 @@ const ROWS = {
 };
 
 // ─── STATE ────────────────────────────────────────────────
-let mi=1, curView='dash', token=null, cfg=null, loading=false, slideDir=0;
+let mi=1, curView='dash', token=null, cfg=null, slideDir=0;
 let tokenClient=null, authInteractive=false;
 let logFilterCat=null, logFilterCC=null, logSort='date-desc', logSearch='';
 let editingSheetRow=null;
 const cache={}, cacheTs={};
 const CACHE_TTL=300000; // 5 min — data only changes via in-app edits (which invalidate)
+// Hydrate from last session so the app paints instantly on open (then revalidates).
+try{
+  const j=JSON.parse(localStorage.getItem('et_cache_v1')||'null');
+  if(j){ Object.assign(cache,j.c||{}); Object.assign(cacheTs,j.t||{}); }
+}catch(e){}
+function persistCache(){
+  try{ localStorage.setItem('et_cache_v1',JSON.stringify({c:cache,t:cacheTs})); }catch(e){}
+}
 function isCached(m){return cache[m]&&(Date.now()-cacheTs[m])<CACHE_TTL;}
-function invalidate(m){delete cache[m];}
+function invalidate(m){delete cache[m]; persistCache();}
 
 // ─── CONFIG ───────────────────────────────────────────────
 function iraYear(){ return MONTHS[mi].split(' ')[1]; }
@@ -1460,10 +1468,13 @@ async function findNextEmptyRow(mn){
 }
 
 // ─── LOAD DATA ────────────────────────────────────────────
-async function loadData(){
-  if(!token||!cfg||loading) return;
-  loading=true;
-  const mn=MONTHS[mi];
+const inflight=new Set();
+async function loadData(t=mi){
+  if(!token||!cfg) return;
+  const mn=MONTHS[t];
+  if(inflight.has(mn)) return;
+  inflight.add(mn);
+  const hadCache=!!cache[mn]; // revalidating in background → don't re-animate
   const ranges=[
     `'${mn}'!D6:H9`,
     `'${mn}'!D12:F27`,       // rows 12-27: 12 cats + adjRent + invest + totalOut + leftover
@@ -1474,14 +1485,14 @@ async function loadData(){
   ];
   // Fold the previous-month log into this same batch (one round-trip) — but only
   // if it isn't already cached.
-  const prevCached = mi>0 && isCached(MONTHS[mi-1]);
-  const wantPrev   = mi>0 && !prevCached;
-  if(wantPrev) ranges.push(`'${MONTHS[mi-1]}'!J12:R${ROWS.logEnd}`);
+  const prevCached = t>0 && isCached(MONTHS[t-1]);
+  const wantPrev   = t>0 && !prevCached;
+  if(wantPrev) ranges.push(`'${MONTHS[t-1]}'!J12:R${ROWS.logEnd}`);
   let vr=await sheetsBatchGet(ranges);
   // If the batch failed and we appended a prev-month range, that tab may not exist
   // (e.g. the very first month). Retry once with just the current month so it loads.
   if(!vr && wantPrev){ ranges.pop(); vr=await sheetsBatchGet(ranges); }
-  if(!vr){ loading=false; toast('Could not load data — check connection','#cf5468'); return; }
+  if(!vr){ inflight.delete(mn); if(t===mi) toast('Could not load data — check connection','#cf5468'); return; }
 
   const g=(a,r,c)=>{
     const raw=((a[r]||[])[c]||'').toString().trim();
@@ -1551,9 +1562,9 @@ async function loadData(){
   // Previous month log (for the comparison chart) — no extra network call:
   // reuse the cached prev month if available, else read it from the folded batch (vr[6]).
   let prevLogRows=[];
-  if(mi>0){
+  if(t>0){
     if(prevCached){
-      prevLogRows=(cache[MONTHS[mi-1]].logRows||[]).map(r=>({date:r.date,share:r.share}));
+      prevLogRows=(cache[MONTHS[t-1]].logRows||[]).map(r=>({date:r.date,share:r.share}));
     } else if(vr[6]&&vr[6].values){
       prevLogRows=vr[6].values.filter(r=>(r[2]||'').toString().trim()).map(r=>({
         date:r[1]||'',
@@ -1562,13 +1573,20 @@ async function loadData(){
     }
   }
 
-  loading=false;
+  inflight.delete(mn);
   const d={income,pay1,pay2,carry,adjRent,adjRentPct,ccTotal,leftover,leftoverPct,
     invested,investPct,catShares,catPcts,catBudgets,ccAmts,logRows,prevLogRows,
     robAdd,robBal,vanAdd,vanBal,wantsAdd,wantsBal,vacAdd,vacBal,carAdd,carBal,emergAdd,emergBal,allyTotal,
     sharonBase,sheCovered,youCovered,sharonTotal,youOwe};
   cache[mn]=d; cacheTs[mn]=Date.now();
-  renderAll(d);
+  persistCache();
+  if(t===mi){ renderAll(d,!hadCache); prefetchAdjacent(); }
+}
+// Warm the months either side of the current one so swiping is instant.
+function prefetchAdjacent(){
+  for(const j of [mi+1,mi-1]){
+    if(j>=0 && j<MONTHS.length && !isCached(MONTHS[j])) loadData(j);
+  }
 }
 
 // Lazy rendering: only the visible page renders; others are marked dirty and
@@ -1580,9 +1598,9 @@ const VIEW_RENDERERS={
   invest:d=>renderInvest(d),
   sharon:d=>renderSharon(d),
 };
-let dirtyViews=new Set();
+let dirtyViews=new Set(Object.keys(VIEW_RENDERERS)); // all dirty until first render
 function renderView(v,d){ const fn=VIEW_RENDERERS[v]; if(fn){ fn(d); dirtyViews.delete(v); } }
-function renderAll(d){ dirtyViews=new Set(Object.keys(VIEW_RENDERERS)); renderView(curView,d); animateSlide(); }
+function renderAll(d,animate=true){ dirtyViews=new Set(Object.keys(VIEW_RENDERERS)); renderView(curView,d); if(animate) animateSlide(); }
 
 function renderRecentTxns(logRows){
   const el=document.getElementById('recent-txns');
@@ -2683,8 +2701,9 @@ function nav(v){
   document.getElementById('fab').classList.toggle('show',v==='log');
   document.getElementById('scroll').scrollTop=0;
   if(token){
-    if(isCached(MONTHS[mi])){ if(dirtyViews.has(v)) renderView(v,cache[MONTHS[mi]]); }
-    else loadData();
+    const d=cache[MONTHS[mi]];
+    if(d&&dirtyViews.has(v)) renderView(v,d); // paint instantly, even if stale
+    if(!isCached(MONTHS[mi])) loadData();     // first load or background revalidate
   }
 }
 function syncNav(){
@@ -2712,7 +2731,11 @@ function pickYear(y){
   mi=idx;
   logFilterCat=null; logFilterCC=null; logSort='date-desc'; logSearch='';
   syncNav();
-  if(token){ if(isCached(MONTHS[mi])) renderAll(cache[MONTHS[mi]]); else loadData(); }
+  if(token){
+    const cd=cache[MONTHS[mi]];
+    if(cd) renderAll(cd);                 // paint instantly, even if stale
+    if(!isCached(MONTHS[mi])) loadData(); // first load or background revalidate
+  }
   else animateSlide();
 }
 function chYear(y){ pickYear(y); }
@@ -2721,7 +2744,11 @@ function chMonth(d){
   mi=Math.max(0,Math.min(MONTHS.length-1,mi+d));
   logFilterCat=null; logFilterCC=null; logSort='date-desc'; logSearch='';
   slideDir=d; syncNav();
-  if(token){ if(isCached(MONTHS[mi])) renderAll(cache[MONTHS[mi]]); else loadData(); }
+  if(token){
+    const cd=cache[MONTHS[mi]];
+    if(cd) renderAll(cd);                 // paint instantly, even if stale
+    if(!isCached(MONTHS[mi])) loadData(); // first load or background revalidate
+  }
   else animateSlide();
 }
 
