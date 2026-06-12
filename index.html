@@ -551,6 +551,18 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   color:var(--green); background:rgba(61,169,120,.12); border:1px solid rgba(61,169,120,.25);
   border-radius:4px; padding:1px 5px; margin-left:6px; vertical-align:middle;
 }
+.ira-toggle-btn {
+  font-size:9px; font-weight:600; letter-spacing:.05em;
+  padding:2px 7px; border-radius:5px; cursor:pointer;
+  border:1px solid var(--line2); background:transparent; color:var(--text3);
+  transition:all .15s; flex-shrink:0;
+}
+.ira-toggle-btn:hover { color:var(--text2); border-color:var(--text3); }
+.ira-toggle-btn.maxed {
+  color:var(--green); background:rgba(61,169,120,.1);
+  border-color:rgba(61,169,120,.3);
+}
+.ira-toggle-btn.maxed:hover { background:rgba(61,169,120,.18); }
 
 /* ── BANNER ── */
 .banner {
@@ -1308,15 +1320,25 @@ function computeIraYtd(){
   }
   return ytd;
 }
+function toggleIraMaxed(){
+  const cur=localStorage.getItem('et_ira_maxed')==='true';
+  localStorage.setItem('et_ira_maxed',String(!cur));
+  document.getElementById('cfg-ira-maxed').checked=!cur;
+  const cached=cache[MONTHS[mi]];
+  if(cached) renderInvest(cached);
+}
 function renderIraRow(d){
   const iraMax=Number(localStorage.getItem('et_ira_max')||7000);
   const iraMaxed=localStorage.getItem('et_ira_maxed')==='true';
   const ytd=computeIraYtd();
   const pct=iraMax>0?Math.min(100,ytd/iraMax*100):0;
   const isMaxed=iraMaxed||pct>=100;
+  const toggleBtn=isMaxed
+    ?`<button class="ira-toggle-btn maxed" onclick="toggleIraMaxed()">✓ Maxed</button>`
+    :`<button class="ira-toggle-btn" onclick="toggleIraMaxed()">Mark Maxed</button>`;
   return `<div class="crow"><div class="ci" style="background:rgba(154,143,232,.12)">📊</div>
     <div class="cm">
-      <div class="cn" style="font-weight:700">Vanguard IRA${isMaxed?'<span class="ira-maxed-badge">✓ Maxed</span>':''}</div>
+      <div class="cn" style="font-weight:700;display:flex;align-items:center;gap:8px">Vanguard IRA ${toggleBtn}</div>
       <div class="ira-bar"><div class="ira-bar-fill" style="width:${pct.toFixed(1)}%;${isMaxed?'background:var(--green)':''}"></div></div>
       <div class="cpct">YTD ${fmt(ytd)} / ${fmt(iraMax)}${d.vanAdd>0?' · +'+fmt(d.vanAdd)+' this month':''}</div>
     </div>
