@@ -71,10 +71,20 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   display:none;
 }
 .mpill {
-  display:flex; align-items:center;
+  display:flex; align-items:center; flex-direction:column; justify-content:center;
   background:var(--bg3); border:1px solid var(--line2);
-  border-radius:11px; overflow:hidden; height:38px;
+  border-radius:11px; overflow:hidden; padding:4px 0 2px;
 }
+.mpill-nav { display:flex; align-items:center; }
+.ypill { display:flex; gap:3px; padding:0 8px 2px; }
+.ybtn {
+  font-family:var(--mono); font-size:9px; font-weight:600; letter-spacing:.05em;
+  padding:2px 7px; border-radius:5px; background:transparent;
+  border:1px solid transparent; color:var(--text3); cursor:pointer;
+  transition:all .15s;
+}
+.ybtn:hover { background:var(--bg4); color:var(--text2); }
+.ybtn.active { background:rgba(123,133,240,.18); border-color:rgba(123,133,240,.35); color:var(--accent); }
 .mbtn {
   background:none; border:none; color:var(--text2); font-size:20px;
   cursor:pointer; width:38px; height:38px;
@@ -453,8 +463,8 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 
 /* ── INVEST PAGE ── */
 .bc-val.teal { color:var(--teal); }
-.invest-goal-row { padding:11px 0; border-bottom:1px solid var(--line); }
-.invest-goal-row:last-child { border-bottom:none; padding-bottom:2px; }
+.invest-goal-row { padding:11px 14px; border-bottom:1px solid var(--line); }
+.invest-goal-row:last-child { border-bottom:none; padding-bottom:8px; }
 .invest-goal-hdr { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px; }
 .invest-goal-name { font-size:12px; color:var(--text); font-weight:600; }
 .invest-goal-amt { font-family:var(--mono); font-size:11px; color:var(--text2); }
@@ -901,14 +911,21 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 <header class="hdr">
   <div class="hdr-brand">
     <div class="hdr-logo">ET</div>
-    <div class="hdr-name">Expenses <span>2026</span></div>
+    <div class="hdr-name">Expenses <span id="hdr-year">2026</span></div>
   </div>
   <div class="hdr-date" id="hdr-date"></div>
   <div class="hdr-r">
     <div class="mpill">
-      <button class="mbtn" onclick="chMonth(-1)">‹</button>
-      <span class="mname" id="mname">May 2026</span><!-- updated by JS on init -->
-      <button class="mbtn" onclick="chMonth(1)">›</button>
+      <div class="ypill">
+        <button class="ybtn active" id="ybtn-2026" data-year="2026" onclick="chYear(2026)">2026</button>
+        <button class="ybtn" id="ybtn-2027" data-year="2027" onclick="chYear(2027)">2027</button>
+        <button class="ybtn" id="ybtn-2028" data-year="2028" onclick="chYear(2028)">2028</button>
+      </div>
+      <div class="mpill-nav">
+        <button class="mbtn" onclick="chMonth(-1)">‹</button>
+        <span class="mname" id="mname">May 2026</span><!-- updated by JS on init -->
+        <button class="mbtn" onclick="chMonth(1)">›</button>
+      </div>
     </div>
     <div class="sync-wrap">
       <div class="dot" id="sync-dot"></div>
@@ -1115,8 +1132,16 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 // ─── CONSTANTS ────────────────────────────────────────────
-const MONTHS = ['May 2026','Jun 2026','Jul 2026','Aug 2026','Sep 2026','Oct 2026','Nov 2026','Dec 2026'];
-const MDATES = ['2026-05-01','2026-06-01','2026-07-01','2026-08-01','2026-09-01','2026-10-01','2026-11-01','2026-12-01'];
+const MONTHS = [
+  'May 2026','Jun 2026','Jul 2026','Aug 2026','Sep 2026','Oct 2026','Nov 2026','Dec 2026',
+  'Jan 2027','Feb 2027','Mar 2027','Apr 2027','May 2027','Jun 2027','Jul 2027','Aug 2027','Sep 2027','Oct 2027','Nov 2027','Dec 2027',
+  'Jan 2028','Feb 2028','Mar 2028','Apr 2028','May 2028','Jun 2028'
+];
+const MDATES = [
+  '2026-05-01','2026-06-01','2026-07-01','2026-08-01','2026-09-01','2026-10-01','2026-11-01','2026-12-01',
+  '2027-01-01','2027-02-01','2027-03-01','2027-04-01','2027-05-01','2027-06-01','2027-07-01','2027-08-01','2027-09-01','2027-10-01','2027-11-01','2027-12-01',
+  '2028-01-01','2028-02-01','2028-03-01','2028-04-01','2028-05-01','2028-06-01'
+];
 const CATS   = ['Groceries','Utilities','Gas / Transport','Dining / Takeout','Entertainment','Health','Shopping','Subscriptions','Cash','Personal / Misc','Other','Travel'];
 const CCS    = ['CFF','CFU','CSP','Discover','Citi','Capital One','WF','Amazon Card','Robinhood','Cash','Other'];
 
@@ -2521,11 +2546,27 @@ function nav(v){
   document.getElementById('scroll').scrollTop=0;
   if(token){if(isCached(MONTHS[mi]))renderAll(cache[MONTHS[mi]]);else loadData();}
 }
+function syncNav(){
+  const m=MONTHS[mi];
+  document.getElementById('mname').textContent=m;
+  const y=m.split(' ')[1];
+  document.querySelectorAll('.ybtn').forEach(b=>b.classList.toggle('active',b.dataset.year===y));
+  const hY=document.getElementById('hdr-year');
+  if(hY) hY.textContent=y;
+}
+function chYear(y){
+  const idx=MONTHS.findIndex(m=>m.endsWith(String(y)));
+  if(idx<0) return;
+  mi=idx;
+  logFilterCat=null; logFilterCC=null; logSort='date-desc'; logSearch='';
+  slideDir=1; syncNav();
+  if(token){ if(isCached(MONTHS[mi])) renderAll(cache[MONTHS[mi]]); else loadData(); }
+  else animateSlide();
+}
 function chMonth(d){
   mi=Math.max(0,Math.min(MONTHS.length-1,mi+d));
   logFilterCat=null; logFilterCC=null; logSort='date-desc'; logSearch='';
-  slideDir=d;
-  document.getElementById('mname').textContent=MONTHS[mi];
+  slideDir=d; syncNav();
   if(token){ if(isCached(MONTHS[mi])) renderAll(cache[MONTHS[mi]]); else loadData(); }
   else animateSlide();
 }
@@ -2683,7 +2724,7 @@ function toast(msg,color='#1e2440'){
 
 // ─── INIT ─────────────────────────────────────────────────
 loadConfig();
-document.getElementById('mname').textContent=MONTHS[mi]; // sync pill to default month
+syncNav(); // sync pill + year tabs to default month
 if(cfg){
   document.getElementById('setup-banner').classList.add('hidden');
   const cached=loadToken();
