@@ -38,6 +38,8 @@
   --sans: 'Space Grotesk', sans-serif;
   --r:    18px;
   --r-sm: 12px;
+  /* ── Tinted surfaces ── */
+  --teal-tint: rgba(92,181,168,.1);
 }
 * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
 html,body { height:100%; overflow:hidden; }
@@ -138,7 +140,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   flex:1; display:flex; flex-direction:column; align-items:center;
   justify-content:center; padding:9px 2px 8px; cursor:pointer;
   border:none; background:transparent; color:var(--text3);
-  font-family:var(--sans); font-size:7px; font-weight:700;
+  font-family:var(--sans); font-size:8px; font-weight:700;
   letter-spacing:.06em; text-transform:uppercase; gap:4px;
   transition:color .2s; min-height:56px; position:relative;
 }
@@ -147,10 +149,11 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   width:24px; height:3px; border-radius:2px;
   background: var(--grad-accent);
   transition: transform .3s cubic-bezier(.16,1,.3,1);
+  will-change: transform;
 }
 .bni.active .bni-pip { transform:translateX(-50%) scaleX(1); }
 .bni.active { color:var(--accent); }
-.bni-icon { font-size:18px; line-height:1; transition:transform .25s cubic-bezier(.16,1,.3,1); }
+.bni-icon { font-size:18px; line-height:1; transition:transform .25s cubic-bezier(.16,1,.3,1); will-change:transform; }
 .bni.active .bni-icon { transform:scale(1.15) translateY(-1px); }
 
 /* ── PAGES ── */
@@ -410,6 +413,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   justify-content:center; cursor:pointer; z-index:99;
   box-shadow: 0 6px 20px rgba(0,0,0,.5), 0 2px 10px rgba(201,150,58,.25);
   transition:transform .12s;
+  will-change: transform, opacity;
 }
 .fab:active { transform:scale(.9); }
 .fab.show { display:flex; animation:fabPop .3s cubic-bezier(.16,1,.3,1); }
@@ -617,7 +621,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .banner.hidden { display:none; }
 .banner-text { font-size:13px; color:var(--amber); font-weight:500; flex:1; }
 .banner-cta {
-  background:var(--amber); color:#000; border:none; border-radius:8px;
+  background:var(--amber); color:var(--bg); border:none; border-radius:8px;
   padding:9px 14px; font-family:var(--sans); font-size:12px; font-weight:700;
   cursor:pointer; white-space:nowrap; transition:transform .12s;
 }
@@ -741,7 +745,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .budget-edit-hint { font-size:10px; color:var(--text3); text-align:center; padding:12px 0 4px; font-family:var(--mono); }
 
 /* Recurring chip */
-.chip-r { background:rgba(92,181,168,.1); color:var(--teal); }
+.chip-r { background:var(--teal-tint); color:var(--teal); }
 
 /* Recurring toggle in form */
 .recur-toggle { display:flex; align-items:center; gap:10px; cursor:pointer; padding:12px 0 0; }
@@ -750,7 +754,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 
 /* ── EMPTY ── */
 .empty { padding:52px 24px; text-align:center; }
-.empty-icon { font-size:40px; opacity:.2; margin-bottom:12px; }
+.empty-icon { font-size:40px; opacity:.45; margin-bottom:12px; }
 .empty-text { font-size:14px; color:var(--text2); font-weight:600; }
 .empty-sub { font-size:12px; color:var(--text3); margin-top:5px; }
 
@@ -1406,9 +1410,11 @@ function saveIraSettings(){
   const y=iraYear();
   const max=document.getElementById('cfg-ira-max').value.trim();
   const maxed=document.getElementById('cfg-ira-maxed').checked;
-  if(max) localStorage.setItem('et_ira_max_'+y,max);
-  else localStorage.removeItem('et_ira_max_'+y);
-  localStorage.setItem('et_ira_maxed_'+y,String(maxed));
+  try{
+    if(max) localStorage.setItem('et_ira_max_'+y,max);
+    else localStorage.removeItem('et_ira_max_'+y);
+    localStorage.setItem('et_ira_maxed_'+y,String(maxed));
+  }catch(e){}
   const cached=cache[MONTHS[mi]];
   if(cached) renderInvest(cached);
 }
@@ -1424,7 +1430,7 @@ function computeIraYtd(){
 function toggleIraMaxed(){
   const y=iraYear();
   const cur=localStorage.getItem('et_ira_maxed_'+y)==='true';
-  localStorage.setItem('et_ira_maxed_'+y,String(!cur));
+  try{ localStorage.setItem('et_ira_maxed_'+y,String(!cur)); }catch(e){}
   document.getElementById('cfg-ira-maxed').checked=!cur;
   const cached=cache[MONTHS[mi]];
   if(cached) renderInvest(cached);
@@ -1461,7 +1467,7 @@ function saveConfig(){
   const sheetId =document.getElementById('cfg-sheet').value.trim();
   if(!clientId||!sheetId){toast('Enter both Client ID and Sheet ID','#cf5468');return;}
   cfg={clientId,sheetId};
-  localStorage.setItem('et_cfg',JSON.stringify(cfg));
+  try{ localStorage.setItem('et_cfg',JSON.stringify(cfg)); }catch(e){}
   toast('Connecting...','#5e6ad2');
   initAuth(true);
 }
@@ -1484,9 +1490,9 @@ function loadToken(){
 function clearToken(){ token=null; try{ localStorage.removeItem('et_token'); }catch(e){} }
 
 // interactive=true → show account chooser; false → silent (reuse session, no popup)
-function initAuth(interactive){
+function initAuth(interactive,_retry=0){
   if(!cfg) return;
-  if(!window.google){ setTimeout(()=>initAuth(interactive),500); return; }
+  if(!window.google){ if(_retry<20) setTimeout(()=>initAuth(interactive,_retry+1),500); return; }
   if(!tokenClient){
     tokenClient=google.accounts.oauth2.initTokenClient({
       client_id:cfg.clientId,
@@ -1532,7 +1538,8 @@ async function sheetsBatchGet(ranges){
   if(!token||!cfg) return null;
   const q=ranges.map(r=>`ranges=${encodeURIComponent(r)}`).join('&');
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values:batchGet?${q}`;
-  const r=await fetch(url,{headers:{Authorization:'Bearer '+token}});
+  let r;
+  try{ r=await fetch(url,{headers:{Authorization:'Bearer '+token}}); }catch(e){ return null; }
   if(r.status===401){clearToken();setSynced(false);initAuth(false);return null;}
   if(!r.ok) return null;
   return (await r.json()).valueRanges;
@@ -1540,8 +1547,10 @@ async function sheetsBatchGet(ranges){
 async function sheetsAppend(range,values){
   if(!token||!cfg) return false;
   const url=`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`;
-  const r=await fetch(url,{method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values})});
-  return r.ok;
+  try{
+    const r=await fetch(url,{method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values})});
+    return r.ok;
+  }catch(e){ return false; }
 }
 async function findNextEmptyRow(mn){
   const data=await sheetsGet(`'${mn}'!L12:L131`);
@@ -2124,7 +2133,7 @@ function renderDash(d){
         <div class="cm"><div class="cn" style="font-weight:600">${c}<span class="cdrill">›</span></div></div>
         <div class="cr"><div class="camt" style="color:${col}">${fmt(d.ccAmts[i])}</div></div>
       </div>`;
-    }).join('') : '<div class="empty"><div class="empty-icon">💳</div><div class="empty-text">No CC charges yet</div></div>')+
+    }).join('') : '<div class="empty"><div class="empty-icon">💳</div><div class="empty-text">No CC charges yet</div><div class="empty-sub">Sync to load card transactions</div></div>')+
     `<div class="crow" style="background:rgba(201,150,58,.05)">
       <div class="ci" style="background:rgba(201,150,58,.15);font-size:17px">🧾</div>
       <div class="cm"><div class="cn accent" style="font-weight:700">Total CC Charges</div></div>
@@ -2987,7 +2996,8 @@ function openAdd(){
 }
 
 function openEditExpense(rdStr){
-  const r=JSON.parse(rdStr.replace(/&quot;/g,'"'));
+  let r;
+  try{ r=JSON.parse(rdStr.replace(/&quot;/g,'"')); }catch(e){ toast('Could not open expense — special characters in description','#cf5468'); return; }
   editingSheetRow=r.sheetRow;
   document.getElementById('modal-title').textContent='Edit Expense';
   document.getElementById('f-date').value=r.date||MDATES[mi];
