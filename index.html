@@ -8,29 +8,29 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* ── Graphite minimal ── */
-  --bg:    #111113;
-  --bg1:   #151517;
-  --bg2:   #1a1a1d;
-  --bg3:   #222226;
-  --bg4:   #2a2a2f;
-  --line:  #28282d;
-  --line2: #36363c;
+  /* ── Midnight navy ── */
+  --bg:    #0b0e16;
+  --bg1:   #0f1520;
+  --bg2:   #141b27;
+  --bg3:   #1b2434;
+  --bg4:   #23304a;
+  --line:  #1c2638;
+  --line2: #273549;
   /* ── Text ── */
-  --text:  #ededef;
-  --text2: #a2a2ab;
-  --text3: #7e7e8a;
+  --text:  #e8edf5;
+  --text2: #849cb8;
+  --text3: #7090b0;
   /* ── Accent ── */
-  --accent:  #7b85f0;
-  --accent2: #5e6ad2;
+  --accent:  #c9963a;
+  --accent2: #a87b28;
   --teal:    #5cb5a8;
   --green:   #3da978;
   --red:     #e05c70;
-  --amber:   #d0a743;
+  --amber:   #d98a2d;
   --purple:  #9a8fe8;
   --cyan:    #6fb6d9;
   /* ── Gradients ── */
-  --grad-accent: linear-gradient(135deg,#7b85f0 0%,#9a8fe8 100%);
+  --grad-accent: linear-gradient(135deg,#c9963a 0%,#a87b28 100%);
   --grad-teal:   linear-gradient(135deg,#5cb5a8 0%,#6fb6d9 100%);
   --grad-green:  linear-gradient(135deg,#3da978 0%,#5cb5a8 100%);
   --grad-red:    linear-gradient(135deg,#e05c70 0%,#e88d9b 100%);
@@ -45,7 +45,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 
 /* ── HEADER ── */
 .hdr {
-  background: rgba(17,17,19,.85);
+  background: rgba(11,14,22,.90);
   backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
   border-bottom: 1px solid var(--line);
   height: calc(60px + env(safe-area-inset-top,0));
@@ -58,8 +58,8 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   width:32px; height:32px; border-radius:9px;
   background: var(--grad-accent);
   display:flex; align-items:center; justify-content:center;
-  font-size:13px; font-weight:800; color:#fff; letter-spacing:-.5px;
-  box-shadow: 0 2px 10px rgba(123,133,240,.3);
+  font-size:13px; font-weight:800; color:var(--bg); letter-spacing:-.5px;
+  box-shadow: 0 2px 10px rgba(201,150,58,.3);
 }
 .hdr-name { font-size:14px; font-weight:700; color:var(--text); }
 .hdr-name span { color:var(--text2); font-weight:500; font-size:12px; margin-left:4px; }
@@ -129,7 +129,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 /* ── BOTTOM NAV ── */
 .bnav {
   position:fixed; bottom:0; left:0; right:0; z-index:100;
-  background: rgba(17,17,19,.9);
+  background: rgba(11,14,22,.93);
   backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);
   border-top:1px solid var(--line);
   display:flex; padding-bottom:env(safe-area-inset-bottom,0);
@@ -290,7 +290,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 }
 .crow:last-child { border-bottom:none; }
 .crow:active { background:var(--bg3); }
-.crow.accent-row { background:rgba(123,133,240,.05); }
+.crow.accent-row { background:rgba(201,150,58,.05); }
 .crow.teal-row   { background:rgba(92,181,168,.05); }
 .crow.green-row  { background:rgba(61,169,120,.07); }
 .ci {
@@ -328,7 +328,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   padding-right:26px; transition:border-color .15s, color .15s;
 }
 .lf-select:focus { border-color:var(--accent); color:var(--text); }
-.lf-select.active { border-color:var(--accent); color:var(--accent); background-color:rgba(123,133,240,.08); }
+.lf-select.active { border-color:var(--accent); color:var(--accent); background-color:rgba(201,150,58,.08); }
 
 /* ── LOG SEARCH ── */
 .lf-search-wrap { position:relative; margin-bottom:8px; }
@@ -398,7 +398,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   transition:transform .1s, opacity .1s;
 }
 .la-btn:active { transform:scale(.95); opacity:.85; }
-.la-edit   { background:rgba(123,133,240,.15); color:var(--accent); }
+.la-edit   { background:rgba(201,150,58,.15); color:var(--accent); }
 .la-delete { background:rgba(224,92,112,.12);  color:var(--red); }
 
 /* ── LOG ── */
@@ -406,9 +406,9 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   position:fixed; bottom:calc(86px + env(safe-area-inset-bottom,0)); right:20px;
   width:56px; height:56px; border-radius:18px;
   background: var(--grad-accent);
-  border:none; color:#fff; font-size:26px; display:none; align-items:center;
+  border:none; color:var(--bg); font-size:26px; display:none; align-items:center;
   justify-content:center; cursor:pointer; z-index:99;
-  box-shadow: 0 6px 20px rgba(0,0,0,.5), 0 2px 10px rgba(123,133,240,.25);
+  box-shadow: 0 6px 20px rgba(0,0,0,.5), 0 2px 10px rgba(201,150,58,.25);
   transition:transform .12s;
 }
 .fab:active { transform:scale(.9); }
@@ -436,7 +436,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   border-radius:5px; padding:3px 7px; letter-spacing:.03em;
   display:inline-flex; align-items:center; gap:3px;
 }
-.chip-b { background:rgba(123,133,240,.12); color:var(--accent); }
+.chip-b { background:rgba(201,150,58,.12); color:var(--accent); }
 .chip-g { background:rgba(61,169,120,.1); color:var(--green); }
 .log-r { text-align:right; flex-shrink:0; }
 .log-total { font-family:var(--mono); font-size:15px; font-weight:500; color:var(--text); }
@@ -489,7 +489,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .sharon-hdr {
   margin:14px 18px 0; border:1px solid rgba(154,143,232,.2);
   border-radius:var(--r); padding:20px 22px;
-  background:linear-gradient(135deg,rgba(123,133,240,.08) 0%,rgba(154,143,232,.04) 100%);
+  background:linear-gradient(135deg,rgba(154,143,232,.08) 0%,rgba(154,143,232,.03) 100%);
   position:relative; overflow:hidden;
 }
 .sharon-hdr::before {
@@ -515,13 +515,13 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .sbtn {
   display:block; width:calc(100% - 36px); margin:12px 18px 0;
   background: var(--grad-accent);
-  color:#fff; border:none; border-radius:12px;
+  color:var(--bg); border:none; border-radius:12px;
   padding:16px; font-family:var(--sans); font-size:15px; font-weight:700;
   cursor:pointer; letter-spacing:.02em;
   box-shadow:0 4px 14px rgba(0,0,0,.4);
   transition:transform .12s, box-shadow .12s;
 }
-.sbtn:active { transform:scale(.97); box-shadow:0 2px 10px rgba(123,133,240,.2); }
+.sbtn:active { transform:scale(.97); box-shadow:0 2px 10px rgba(201,150,58,.2); }
 .sbtn.ghost {
   background:transparent; color:var(--text2);
   border:1.5px solid var(--line2); box-shadow:none; margin-top:10px;
@@ -571,7 +571,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .yo-stat-val { font-family:var(--mono); font-size:14px; color:var(--text); }
 .yo-row { display:flex; align-items:center; gap:10px; padding:7px 6px; cursor:pointer; border-radius:7px; }
 .yo-row:active { background:var(--bg3); }
-.yo-row.cur { background:rgba(123,133,240,.07); }
+.yo-row.cur { background:rgba(201,150,58,.07); }
 .yo-mon { font-family:var(--mono); font-size:10px; color:var(--text3); width:28px; flex-shrink:0; }
 .yo-row.cur .yo-mon { color:var(--accent); font-weight:700; }
 .yo-bar { flex:1; height:13px; background:var(--line); border-radius:4px; overflow:hidden; }
@@ -666,8 +666,8 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .mfg input:focus, .mfg select:focus { outline:none; border-color:var(--accent); background:var(--bg4); }
 .fgrid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
 .prev-box {
-  background:linear-gradient(135deg,rgba(123,133,240,.12) 0%,rgba(154,143,232,.05) 100%);
-  border:1.5px solid rgba(123,133,240,.22); border-radius:12px;
+  background:linear-gradient(135deg,rgba(201,150,58,.08) 0%,rgba(201,150,58,.03) 100%);
+  border:1.5px solid rgba(201,150,58,.22); border-radius:12px;
   padding:16px; display:flex; align-items:center;
   justify-content:space-between; margin-bottom:16px;
 }
@@ -675,13 +675,13 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .prev-val { font-family:var(--mono); font-size:26px; font-weight:500; color:var(--accent); }
 .msave {
   width:100%; background: var(--grad-accent);
-  color:#fff; border:none; border-radius:12px;
+  color:var(--bg); border:none; border-radius:12px;
   padding:17px; font-family:var(--sans); font-size:16px; font-weight:700;
   cursor:pointer;
   box-shadow:0 4px 14px rgba(0,0,0,.4);
   transition:transform .12s, box-shadow .12s;
 }
-.msave:active { transform:scale(.97); box-shadow:0 2px 10px rgba(123,133,240,.2); }
+.msave:active { transform:scale(.97); box-shadow:0 2px 10px rgba(201,150,58,.2); }
 
 /* ── BUDGET PAGE ── */
 .budget-summary {
@@ -807,7 +807,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
     overflow:hidden;
     transition:width .22s cubic-bezier(.4,0,.2,1);
     z-index:50;
-    background:rgba(4,15,32,.98);
+    background:rgba(8,12,24,.98);
     backdrop-filter:blur(28px);
     -webkit-backdrop-filter:blur(28px);
   }
@@ -1013,9 +1013,19 @@ select:focus:not(:focus-visible) { outline: none; }
   }
   .sk { animation: none; background: var(--bg4); }
 }
+
+.skip-link {
+  position:absolute; top:-100%; left:16px;
+  background:var(--accent); color:var(--bg);
+  padding:8px 16px; border-radius:8px;
+  font-size:13px; font-weight:700; text-decoration:none;
+  z-index:9999; transition:top .1s;
+}
+.skip-link:focus { top:8px; }
 </style>
 </head>
 <body>
+<a href="#scroll" class="skip-link">Skip to content</a>
 
 <!-- HEADER -->
 <header class="hdr">
@@ -1038,7 +1048,7 @@ select:focus:not(:focus-visible) { outline: none; }
         <span class="ysep">·</span>
         <button class="ybtn" id="ybtn-2028" data-year="2028" onclick="pickYear(2028)">2028</button>
         <span class="ysep">·</span>
-        <button class="ybtn" onclick="openYearOverview(event)" title="Year at a glance">📊</button>
+        <button class="ybtn" onclick="openYearOverview(event)" title="Year at a glance" aria-label="Year at a glance">📊</button>
       </div>
     </div>
     <div class="sync-wrap">
@@ -1048,7 +1058,7 @@ select:focus:not(:focus-visible) { outline: none; }
   </div>
 </header>
 
-<div class="scroll" id="scroll">
+<main class="scroll" id="scroll">
 
   <!-- DASHBOARD -->
   <div class="page active" id="p-dash">
@@ -1201,7 +1211,7 @@ select:focus:not(:focus-visible) { outline: none; }
     <div class="pb"></div>
   </div>
 
-</div>
+</main>
 
 <!-- BOTTOM NAV -->
 <nav class="bnav">
@@ -2081,7 +2091,7 @@ function renderDash(d){
     </div>`;
   }).join('');
   html+=`<div class="crow">
-    <div class="ci" style="background:rgba(123,133,240,.12)">🏠</div>
+    <div class="ci" style="background:rgba(201,150,58,.12)">🏠</div>
     <div class="cm"><div class="cn accent" style="font-weight:700">Adjusted Rent</div>
       <div class="cbar"><div class="cbfill" style="width:${Math.round((d.adjRent/maxS)*100)}%;background:var(--accent)"></div></div></div>
     <div class="cr"><div class="camt accent">${fmt(d.adjRent)}</div><div class="cpct">${pct(d.adjRentPct)}</div></div>
@@ -2115,8 +2125,8 @@ function renderDash(d){
         <div class="cr"><div class="camt" style="color:${col}">${fmt(d.ccAmts[i])}</div></div>
       </div>`;
     }).join('') : '<div class="empty"><div class="empty-icon">💳</div><div class="empty-text">No CC charges yet</div></div>')+
-    `<div class="crow" style="background:rgba(123,133,240,.05)">
-      <div class="ci" style="background:rgba(123,133,240,.15);font-size:17px">🧾</div>
+    `<div class="crow" style="background:rgba(201,150,58,.05)">
+      <div class="ci" style="background:rgba(201,150,58,.15);font-size:17px">🧾</div>
       <div class="cm"><div class="cn accent" style="font-weight:700">Total CC Charges</div></div>
       <div class="cr"><div class="camt accent">${fmt(d.ccTotal)}</div></div>
     </div>`;
