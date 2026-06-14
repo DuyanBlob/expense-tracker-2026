@@ -974,7 +974,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   .donut-stat-lbl,
   .bc-sub,
   .recent-meta { color:var(--text2); }
-  .hdr-date { color:#a2a2ab; font-size:12px; }
+  .hdr-date { color:var(--text3); font-size:12px; }
 
   /* Latest Transactions: larger, clearer */
   .dash-right .recent-txns-hdr {
@@ -1468,7 +1468,7 @@ function saveConfig(){
   if(!clientId||!sheetId){toast('Enter both Client ID and Sheet ID','#cf5468');return;}
   cfg={clientId,sheetId};
   try{ localStorage.setItem('et_cfg',JSON.stringify(cfg)); }catch(e){}
-  toast('Connecting...','#5e6ad2');
+  toast('Connecting...','#c87a35');
   initAuth(true);
 }
 function openSetup(){ nav('settings'); }
@@ -3068,7 +3068,7 @@ async function saveExpense(){
 
   const row=[[date,desc,cat,cc,total,split,share,notes,recurring]];
   closeOverlay('add-overlay');
-  toast('Saving…','#5e6ad2');
+  toast('Saving…','#c87a35');
   if(token){
     let targetRow;
     if(editingSheetRow!==null){
@@ -3112,7 +3112,7 @@ async function exportCSV(){
 function closeOverlay(id){document.getElementById(id).classList.remove('open');}
 function bgTap(e,id){if(e.target===document.getElementById(id))closeOverlay(id);}
 let toastTimer;
-function toast(msg,color='#1e2440'){
+function toast(msg,color='#281c14'){
   const t=document.getElementById('toast');
   t.textContent=msg; t.style.background=color; t.style.color='#fff';
   t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)';
