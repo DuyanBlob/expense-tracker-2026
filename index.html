@@ -2849,13 +2849,25 @@ async function editRobAdd(el){
   async function save(){
     const val=Math.max(0,parseFloat(inp.value)||0);
     el.innerHTML=`+${fmt(val)} this month`;
-    if(cached) cached.robAdd=val;
+    if(cached){
+      const delta=val-current;
+      cached.robAdd=val;
+      cached.invested=(cached.invested||0)+delta;
+      cached.leftover=(cached.leftover||0)-delta;
+      if(cached.income>0){
+        cached.investPct=cached.invested/cached.income;
+        cached.leftoverPct=cached.leftover/cached.income;
+      }
+    }
     if(token&&cfg){
       const range=`'${MONTHS[mi]}'!D45`;
       const ok=await sheetsAppend(range,[[val]]);
-      if(ok){ toast('Saved ✓','#35976b'); if(cached) renderInvest(cached); }
+      if(ok){ toast('Saved ✓','#35976b'); if(cached){ renderInvest(cached); renderDash(cached); } }
       else   toast('Save failed — check connection','#cf5468');
-    } else { toast('Not connected to Google Sheet','#cf5468'); }
+    } else {
+      if(cached){ renderInvest(cached); renderDash(cached); }
+      toast('Not connected to Google Sheet','#cf5468');
+    }
   }
   inp.addEventListener('keydown',e=>{ if(e.key==='Enter') inp.blur(); if(e.key==='Escape') el.innerHTML=oldHtml; });
   inp.addEventListener('blur',save,{once:true});
