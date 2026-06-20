@@ -556,6 +556,8 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   color:var(--green); background:rgba(61,169,120,.12); border:1px solid rgba(61,169,120,.25);
   border-radius:4px; padding:1px 5px; margin-left:6px; vertical-align:middle;
 }
+.rob-add-edit { cursor:pointer; border-radius:5px; padding:1px 5px; margin-left:-5px; transition:background .12s; display:inline-block; }
+.rob-add-edit:active { background:var(--bg4); }
 .ira-toggle-btn {
   font-size:11px; font-weight:600; letter-spacing:.04em;
   padding:3px 8px; border-radius:5px; cursor:pointer;
@@ -744,6 +746,8 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
   width:80px; text-align:right; outline:none;
 }
 .budget-edit-hint { font-size:10px; color:var(--text3); text-align:center; padding:12px 0 4px; font-family:var(--mono); }
+.imt-target { cursor:pointer; font-family:var(--mono); border-radius:5px; padding:2px 5px; transition:background .12s; color:var(--accent); }
+.imt-target:active { background:var(--bg4); }
 
 /* Recurring chip */
 .chip-r { background:var(--teal-tint); color:var(--teal); }
@@ -1150,6 +1154,7 @@ select:focus:not(:focus-visible) { outline: none; }
       <div class="bc-sub" id="invest-port-sub">—</div>
     </div>
     <div class="mini-row" id="invest-mini"></div>
+    <div class="lcard" id="invest-monthly-card"></div>
     <div class="donut-card" id="invest-alloc-donut"></div>
     <div class="slbl">Portfolio Growth</div>
     <div class="lcard" id="invest-growth-card" style="padding:16px 18px 12px"></div>
@@ -1712,7 +1717,7 @@ const SKELETON_TARGETS={
   dash:  ['insights-card','donut-card','cat-card','cc-card'],
   log:   ['log-card'],
   budget:['budget-summary','proj-card','budget-cat-card'],
-  invest:['invest-growth-card','brok-card','invest-goals-card'],
+  invest:['invest-monthly-card','invest-growth-card','brok-card','invest-goals-card'],
   sharon:['sharon-card'],
 };
 function showSkeleton(v){
@@ -2461,7 +2466,7 @@ function renderInvest(d){
   // ── Brokerage & IRA ─────────────────────────────────────
   document.getElementById('brok-card').innerHTML=`
     <div class="crow"><div class="ci" style="background:rgba(92,181,168,.12)">🤖</div>
-      <div class="cm"><div class="cn" style="font-weight:700">Robinhood Brokerage</div><div class="cpct">+${fmt(d.robAdd)} this month</div></div>
+      <div class="cm"><div class="cn" style="font-weight:700">Robinhood Brokerage</div><div class="cpct"><span class="rob-add-edit" onclick="editRobAdd(this)" title="Tap to edit">+${fmt(d.robAdd||0)} this month</span></div></div>
       <div class="cr"><div class="camt teal">${fmt(d.robBal)}</div></div></div>
     ${renderIraRow(d)}`;
 
@@ -2555,7 +2560,27 @@ function renderInvest(d){
       </div>`;
   } else if(donutEl){ donutEl.innerHTML=''; }
 
-  // ── Growth chart + goals ─────────────────────────────────
+  // ── Monthly target card ──────────────────────────────────
+  const monthlyEl=document.getElementById('invest-monthly-card');
+  if(monthlyEl){
+    const target=+(localStorage.getItem('et_invest_target')||0);
+    const inv=d.invested||0;
+    const pctDone=target>0?Math.min(100,(inv/target)*100):0;
+    const left=Math.max(0,target-inv);
+    const done=target>0&&inv>=target;
+    const barCol=done?'var(--green)':'var(--teal)';
+    monthlyEl.innerHTML=`<div class="invest-goal-row" style="padding-bottom:12px">
+      <div class="invest-goal-hdr">
+        <div class="invest-goal-name">📅 Monthly Target</div>
+        <div class="invest-goal-amt">${fmt(inv)}<span style="color:var(--text3)"> / </span><span class="imt-target" onclick="editInvestTarget(this)" title="Tap to edit">🎯 ${target>0?fmt(target):'Set target'}</span></div>
+      </div>
+      ${target>0?`<div class="invest-goal-bar"><div class="invest-goal-fill" style="width:${pctDone.toFixed(1)}%;background:${barCol}"></div></div>
+      <div class="invest-goal-foot"><span>${pctDone.toFixed(0)}% there</span><span style="color:${done?'var(--green)':'var(--text3)'}">${done?'✓ Target hit!':fmt(left)+' to go'}</span></div>`
+      :`<div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:4px">Tap 🎯 to set a monthly goal</div>`}
+    </div>`;
+  }
+
+  // ── Growth chart + goals ──────────────────────────────────
   renderInvestGrowthChart();
   renderInvestGoals(d);
 }
@@ -2809,6 +2834,47 @@ async function editBudget(catIdx,el){
     if(e.key==='Enter') inp.blur();
     if(e.key==='Escape'){el.innerHTML=oldHtml;}
   });
+  inp.addEventListener('blur',save,{once:true});
+}
+
+async function editRobAdd(el){
+  if(el.querySelector('input')) return;
+  const cached=cache[MONTHS[mi]];
+  const current=cached?.robAdd||0;
+  const oldHtml=el.innerHTML;
+  const fmt=n=>'$'+(Math.abs(+n||0)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  el.innerHTML=`<input class="bcat-budget-input" type="number" value="${current||''}" min="0" step="50" placeholder="$ invested" style="width:120px">`;
+  const inp=el.querySelector('input');
+  inp.focus(); inp.select();
+  async function save(){
+    const val=Math.max(0,parseFloat(inp.value)||0);
+    el.innerHTML=`+${fmt(val)} this month`;
+    if(cached) cached.robAdd=val;
+    if(token&&cfg){
+      const range=`'${MONTHS[mi]}'!D45`;
+      const ok=await sheetsAppend(range,[[val]]);
+      if(ok){ toast('Saved ✓','#35976b'); if(cached) renderInvest(cached); }
+      else   toast('Save failed — check connection','#cf5468');
+    } else { toast('Not connected to Google Sheet','#cf5468'); }
+  }
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') inp.blur(); if(e.key==='Escape') el.innerHTML=oldHtml; });
+  inp.addEventListener('blur',save,{once:true});
+}
+
+function editInvestTarget(el){
+  if(el.querySelector('input')) return;
+  const current=+(localStorage.getItem('et_invest_target')||0);
+  const oldHtml=el.innerHTML;
+  el.innerHTML=`<input class="bcat-budget-input" type="number" value="${current||''}" min="0" step="50" placeholder="$ /month">`;
+  const inp=el.querySelector('input');
+  inp.focus(); inp.select();
+  function save(){
+    const val=Math.max(0,parseFloat(inp.value)||0);
+    try{ localStorage.setItem('et_invest_target',String(val)); }catch(e){}
+    const cached=cache[MONTHS[mi]];
+    if(cached) renderInvest(cached);
+  }
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') inp.blur(); if(e.key==='Escape') el.innerHTML=oldHtml; });
   inp.addEventListener('blur',save,{once:true});
 }
 
