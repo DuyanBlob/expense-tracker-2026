@@ -2852,6 +2852,7 @@ async function editRobAdd(el){
     if(cached){
       const delta=val-current;
       cached.robAdd=val;
+      cached.robBal=(cached.robBal||0)+delta;
       cached.invested=(cached.invested||0)+delta;
       cached.leftover=(cached.leftover||0)-delta;
       if(cached.income>0){
