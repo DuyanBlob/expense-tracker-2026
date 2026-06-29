@@ -3064,7 +3064,7 @@ function chMonth(d){
 function openAdd(){
   editingSheetRow=null;
   document.getElementById('modal-title').textContent='Add Expense';
-  document.getElementById('f-date').value=MDATES[mi];
+  const _t=new Date(); document.getElementById('f-date').value=`${_t.getFullYear()}-${String(_t.getMonth()+1).padStart(2,'0')}-${String(_t.getDate()).padStart(2,'0')}`;
   document.getElementById('f-desc').value='';
   document.getElementById('f-total').value='';
   document.getElementById('f-split').value='100';
@@ -3123,7 +3123,7 @@ async function deleteExpense(sheetRow){
 }
 function calcPrev(){
   const t=parseFloat(document.getElementById('f-total').value)||0;
-  const s=parseFloat(document.getElementById('f-split').value)||100;
+  const s=Math.min(100,Math.max(0,parseFloat(document.getElementById('f-split').value)||100));
   document.getElementById('f-prev').textContent=fmt(t*(s/100));
 }
 async function saveExpense(){
@@ -3132,7 +3132,7 @@ async function saveExpense(){
   const cat  =document.getElementById('f-cat').value;
   const cc   =document.getElementById('f-cc').value;
   const total=parseFloat(document.getElementById('f-total').value)||0;
-  const split=parseFloat(document.getElementById('f-split').value)/100;
+  const split=Math.min(100,Math.max(0,parseFloat(document.getElementById('f-split').value)||100))/100;
   const notes    =document.getElementById('f-notes').value;
   const recurring=document.getElementById('f-recurring').checked?'TRUE':'';
   if(!desc||!total){toast('Enter description and amount','#cf5468');return;}
