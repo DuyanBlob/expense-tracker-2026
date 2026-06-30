@@ -558,6 +558,8 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 }
 .rob-add-edit { cursor:pointer; border-radius:5px; padding:1px 5px; margin-left:-5px; transition:background .12s; display:inline-block; }
 .rob-add-edit:active { background:var(--bg4); }
+.saved-edit { cursor:pointer; border-radius:5px; padding:1px 6px; margin-left:-6px; transition:background .12s; display:inline-block; color:var(--teal); font-weight:600; }
+.saved-edit:active { background:var(--bg4); }
 .ira-toggle-btn {
   font-size:11px; font-weight:600; letter-spacing:.04em;
   padding:3px 8px; border-radius:5px; cursor:pointer;
@@ -1619,7 +1621,7 @@ async function loadData(t=mi){
 
   const SET=vr[0].values||[];
   const pay1   =g(SET,0,0); const pay2   =g(SET,0,4);
-  const income =g(SET,2,4); const carry  =g(SET,3,0);
+  const income =g(SET,2,4); const carry  =g(SET,3,0); const saved=g(SET,2,0);
 
   const CAT=vr[1].values||[];
   const catShares  =CATS.map((_,i)=>g(CAT,i,0));
@@ -1683,7 +1685,7 @@ async function loadData(t=mi){
   }
 
   inflight.delete(mn);
-  const d={income,pay1,pay2,carry,adjRent,adjRentPct,ccTotal,leftover,leftoverPct,
+  const d={income,pay1,pay2,carry,saved,adjRent,adjRentPct,ccTotal,leftover,leftoverPct,
     invested,investPct,catShares,catPcts,catBudgets,ccAmts,logRows,prevLogRows,
     robAdd,robBal,vanAdd,vanBal,wantsAdd,wantsBal,vacAdd,vacBal,carAdd,carBal,emergAdd,emergBal,allyTotal,
     sharonBase,sheCovered,youCovered,sharonTotal,youOwe};
@@ -2081,7 +2083,13 @@ function renderDash(d){
   document.getElementById('h-rent').textContent=fmt(d.adjRent);
   document.getElementById('h-cc').textContent=fmt(d.ccTotal);
   document.getElementById('h-left').textContent=fmt(d.leftover);
-  document.getElementById('h-left-sub').textContent=pct(d.leftoverPct)+' of income';
+  // Split leftover into "set aside / saved" (rolls over, off-budget) + free to spend
+  const saved=Math.min(Math.max(0,d.saved||0),Math.max(0,d.leftover||0));
+  const free=(d.leftover||0)-saved;
+  const subEl=document.getElementById('h-left-sub');
+  subEl.innerHTML = saved>0
+    ? `<span class="saved-edit" onclick="editSaved(this)" title="Tap to edit">🔒 ${fmt(saved)} saved</span> · <span style="color:var(--green)">${fmt(free)} free to spend</span>`
+    : `${pct(d.leftoverPct)} of income · <span class="saved-edit" onclick="editSaved(this)" title="Set aside money to carry over">🔒 Set aside</span>`;
   const lc=document.getElementById('h-left-card');
   lc.className='bigcard '+(d.leftover<0?'red':'green');
   document.getElementById('h-left').className='bc-val '+(d.leftover<0?'red':'green');
@@ -2872,6 +2880,32 @@ async function editRobAdd(el){
   }
   inp.addEventListener('keydown',e=>{ if(e.key==='Enter') inp.blur(); if(e.key==='Escape') el.innerHTML=oldHtml; });
   inp.addEventListener('blur',save,{once:true});
+}
+
+async function editSaved(el){
+  if(el.querySelector('input')) return;
+  const cached=cache[MONTHS[mi]];
+  const current=cached?.saved||0;
+  const oldHtml=el.innerHTML;
+  const max=Math.max(0,cached?.leftover||0); // can't set aside more than what's left
+  el.innerHTML=`<input class="bcat-budget-input" type="number" value="${current||''}" min="0"${max>0?` max="${max}"`:''} step="50" placeholder="$ to set aside" style="width:140px">`;
+  const inp=el.querySelector('input');
+  inp.focus(); inp.select();
+  let cancelled=false;
+  async function save(){
+    let val=Math.max(0,parseFloat(inp.value)||0);
+    if(max>0) val=Math.min(val,max);
+    if(cached) cached.saved=val;
+    if(token&&cfg){
+      const range=`'${MONTHS[mi]}'!D8`;
+      const ok=await sheetsAppend(range,[[val]]);
+      if(ok) toast('Saved ✓','#35976b');
+      else   toast('Save failed — check connection','#cf5468');
+    } else { toast('Not connected to Google Sheet','#cf5468'); }
+    if(cached) renderDash(cached);
+  }
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') inp.blur(); if(e.key==='Escape'){ cancelled=true; el.innerHTML=oldHtml; } });
+  inp.addEventListener('blur',()=>{ if(!cancelled) save(); },{once:true});
 }
 
 function editInvestTarget(el){
