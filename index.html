@@ -560,6 +560,8 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 .rob-add-edit:active { background:var(--bg4); }
 .saved-edit { cursor:pointer; border-radius:5px; padding:1px 6px; margin-left:-6px; transition:background .12s; display:inline-block; color:var(--teal); font-weight:600; }
 .saved-edit:active { background:var(--bg4); }
+.pay-edit { cursor:pointer; border-radius:5px; padding:0 4px; transition:background .12s; display:inline-block; text-decoration:underline dotted var(--text3); text-underline-offset:2px; }
+.pay-edit:active { background:var(--bg4); }
 .ira-toggle-btn {
   font-size:11px; font-weight:600; letter-spacing:.04em;
   padding:3px 8px; border-radius:5px; cursor:pointer;
@@ -1386,7 +1388,14 @@ const ROWS = {
 };
 
 // ─── STATE ────────────────────────────────────────────────
-let mi=1, curView='dash', token=null, cfg=null, slideDir=0;
+let mi=(()=>{                       // default to the current calendar month
+  const now=new Date();
+  const key=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const idx=MDATES.findIndex(d=>d.slice(0,7)===key);
+  if(idx>=0) return idx;
+  return key<MDATES[0].slice(0,7) ? 0 : MONTHS.length-1; // clamp outside the tracked range
+})();
+let curView='dash', token=null, cfg=null, slideDir=0;
 let tokenClient=null, authInteractive=false;
 let logFilterCat=null, logFilterCC=null, logSort='date-desc', logSearch='';
 let editingSheetRow=null;
@@ -2078,8 +2087,8 @@ function formatLogDate(ds){
 
 function renderDash(d){
   document.getElementById('h-income').textContent=fmt(d.income);
-  document.getElementById('h-income-sub').textContent=
-    `${fmt(d.pay1)} + ${fmt(d.pay2)}${d.carry?` + ${fmt(d.carry)} carried`:''}`;
+  document.getElementById('h-income-sub').innerHTML=
+    `<span class="pay-edit" onclick="editPay(this,1)" title="Tap to edit Paycheck 1">${fmt(d.pay1)}</span> + <span class="pay-edit" onclick="editPay(this,2)" title="Tap to edit Paycheck 2">${fmt(d.pay2)}</span>${d.carry?` + ${fmt(d.carry)} carried`:''}`;
   document.getElementById('h-rent').textContent=fmt(d.adjRent);
   document.getElementById('h-cc').textContent=fmt(d.ccTotal);
   document.getElementById('h-left').textContent=fmt(d.leftover);
@@ -2880,6 +2889,38 @@ async function editRobAdd(el){
   }
   inp.addEventListener('keydown',e=>{ if(e.key==='Enter') inp.blur(); if(e.key==='Escape') el.innerHTML=oldHtml; });
   inp.addEventListener('blur',save,{once:true});
+}
+
+async function editPay(el,which){
+  if(el.querySelector('input')) return;
+  const cached=cache[MONTHS[mi]];
+  const key=which===1?'pay1':'pay2';
+  const cell=which===1?'D6':'H6';
+  const current=cached?.[key]||0;
+  const oldHtml=el.innerHTML;
+  el.innerHTML=`<input class="bcat-budget-input" type="number" value="${current||''}" min="0" step="50" placeholder="$ paycheck" style="width:110px">`;
+  const inp=el.querySelector('input');
+  inp.focus(); inp.select();
+  let cancelled=false;
+  async function save(){
+    const val=Math.max(0,parseFloat(inp.value)||0);
+    if(cached){
+      const delta=val-current;
+      cached[key]=val;
+      cached.income=(cached.income||0)+delta;   // income = pay1 + pay2 + carry
+      cached.leftover=(cached.leftover||0)+delta; // more paycheck flows straight to leftover
+      if(cached.income>0) cached.leftoverPct=cached.leftover/cached.income;
+    }
+    if(token&&cfg){
+      const range=`'${MONTHS[mi]}'!${cell}`;
+      const ok=await sheetsAppend(range,[[val]]);
+      if(ok) toast('Saved ✓','#35976b');
+      else   toast('Save failed — check connection','#cf5468');
+    } else { toast('Not connected to Google Sheet','#cf5468'); }
+    if(cached) renderDash(cached);
+  }
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') inp.blur(); if(e.key==='Escape'){ cancelled=true; el.innerHTML=oldHtml; } });
+  inp.addEventListener('blur',()=>{ if(!cancelled) save(); },{once:true});
 }
 
 async function editSaved(el){
