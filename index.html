@@ -2354,7 +2354,7 @@ function renderLog(allRows, opts){
   // ── Apply filters ────────────────────────────────────────
   let rows=allRows;
   if(logFilterCat) rows=rows.filter(r=>r.cat===logFilterCat);
-  if(logFilterCC==='__sharon__') rows=rows.filter(r=>!r.cc && r.split<1);
+  if(logFilterCC==='__sharon__') rows=rows.filter(r=>!r.cc);
   else if(logFilterCC) rows=rows.filter(r=>r.cc===logFilterCC);
   if(logSearch && logSearch.trim()){
     const q=logSearch.trim().toLowerCase();
@@ -2399,7 +2399,7 @@ function renderLog(allRows, opts){
           <div class="log-desc">${descH}</div>
           <div class="log-chips">
             <span class="chip chip-b">${ico} ${r.cat}</span>
-            ${r.cc?`<span class="cc-chip" style="background:${ccCol}18;color:${ccCol};display:inline-flex;align-items:center;gap:3px">${ccSvg?`<span style="display:flex;line-height:1">${ccSvg}</span>`:ccIco} ${r.cc}</span>`:r.split<1?'<span class="chip chip-g">👤 Sharon paid</span>':''}
+            ${r.cc?`<span class="cc-chip" style="background:${ccCol}18;color:${ccCol};display:inline-flex;align-items:center;gap:3px">${ccSvg?`<span style="display:flex;line-height:1">${ccSvg}</span>`:ccIco} ${r.cc}</span>`:'<span class="chip chip-g">👤 Sharon paid</span>'}
             ${r.recurring?'<span class="chip chip-r">🔁</span>':''}
           </div>
         </div>
@@ -3151,12 +3151,26 @@ function openAdd(){
   setTimeout(()=>document.getElementById('f-desc').focus(),350);
 }
 
+// Normalize any date the Sheets API returns (e.g. "7/4/2026", "Jul 4, 2026",
+// "2026-07-04") into the YYYY-MM-DD an <input type="date"> requires. Returns ''
+// if unparseable, so a valid original date is never silently dropped on edit.
+function toDateInputValue(ds){
+  if(!ds) return '';
+  ds=ds.toString().trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(ds)) return ds;                 // already correct
+  const iso=ds.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);          // ISO-like → build in local time
+  const d=iso ? new Date(+iso[1],+iso[2]-1,+iso[3]) : new Date(ds);
+  if(isNaN(d)) return '';
+  const p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+
 function openEditExpense(rdStr){
   let r;
   try{ r=JSON.parse(rdStr.replace(/&quot;/g,'"')); }catch(e){ toast('Could not open expense — special characters in description','#cf5468'); return; }
   editingSheetRow=r.sheetRow;
   document.getElementById('modal-title').textContent='Edit Expense';
-  document.getElementById('f-date').value=r.date||MDATES[mi];
+  document.getElementById('f-date').value=toDateInputValue(r.date)||MDATES[mi];
   document.getElementById('f-desc').value=r.desc||'';
   document.getElementById('f-total').value=r.total||'';
   // Split: stored as decimal (0.5), show as percent (50)
