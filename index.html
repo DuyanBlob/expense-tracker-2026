@@ -684,6 +684,18 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); display
 }
 .prev-lbl { font-size:11px; font-weight:700; color:var(--accent); letter-spacing:.06em; }
 .prev-val { font-family:var(--mono); font-size:26px; font-weight:500; color:var(--accent); }
+.prev-val-wrap { display:flex; align-items:baseline; gap:1px; }
+.prev-cur { font-family:var(--mono); font-size:26px; font-weight:500; color:var(--accent); }
+.prev-val-input {
+  font-family:var(--mono); font-size:26px; font-weight:500; color:var(--accent);
+  background:transparent; border:none; outline:none; text-align:right;
+  width:132px; padding:0 1px 2px; margin:0; border-bottom:1.5px solid transparent;
+  transition:border-color .15s; -moz-appearance:textfield;
+}
+.prev-val-input:focus { border-bottom-color:rgba(200,122,53,.5); }
+.prev-val-input::placeholder { color:rgba(200,122,53,.4); }
+.prev-val-input::-webkit-outer-spin-button,
+.prev-val-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 .msave {
   width:100%; background: var(--grad-accent);
   color:var(--bg); border:none; border-radius:12px;
@@ -1268,12 +1280,15 @@ select:focus:not(:focus-visible) { outline: none; }
           </select></div>
       </div>
       <div class="fgrid">
-        <div class="mfg"><label for="f-total">Total ($)</label><input type="number" id="f-total" placeholder="0.00" step="0.01" inputmode="decimal" oninput="calcPrev()"></div>
-        <div class="mfg"><label for="f-split">Your Split %</label><input type="number" id="f-split" value="100" min="0" max="100" inputmode="decimal" oninput="calcPrev()"></div>
+        <div class="mfg"><label for="f-total">Total ($)</label><input type="number" id="f-total" placeholder="0.00" step="0.01" inputmode="decimal" oninput="calcShareFromSplit()"></div>
+        <div class="mfg"><label for="f-split">Your Split %</label><input type="number" id="f-split" value="100" min="0" max="100" inputmode="decimal" oninput="calcShareFromSplit()"></div>
       </div>
       <div class="prev-box">
-        <span class="prev-lbl">YOUR SHARE</span>
-        <span class="prev-val" id="f-prev">$0.00</span>
+        <label class="prev-lbl" for="f-share">YOUR SHARE</label>
+        <div class="prev-val-wrap">
+          <span class="prev-cur">$</span>
+          <input type="number" id="f-share" class="prev-val-input" placeholder="0.00" step="0.01" min="0" inputmode="decimal" oninput="calcSplitFromShare()">
+        </div>
       </div>
       <div class="mfg"><label for="f-notes">Notes</label><input type="text" id="f-notes" placeholder="Optional..." autocomplete="off"></div>
       <label class="recur-toggle">
@@ -3146,7 +3161,7 @@ function openAdd(){
   document.getElementById('f-notes').value='';
   document.getElementById('f-cc').value='';
   document.getElementById('f-recurring').checked=false;
-  calcPrev();
+  calcShareFromSplit();
   document.getElementById('add-overlay').classList.add('open');
   setTimeout(()=>document.getElementById('f-desc').focus(),350);
 }
@@ -3180,7 +3195,7 @@ function openEditExpense(rdStr){
   document.getElementById('f-cat').value=r.cat||CATS[0];
   document.getElementById('f-cc').value=r.cc||'';
   document.getElementById('f-recurring').checked=!!r.recurring;
-  calcPrev();
+  calcShareFromSplit();
   document.getElementById('add-overlay').classList.add('open');
   setTimeout(()=>document.getElementById('f-desc').focus(),350);
 }
@@ -3210,10 +3225,23 @@ async function deleteExpense(sheetRow){
     toast('Delete failed','#cf5468');
   }
 }
-function calcPrev(){
+// Two-way link between "Your Split %" and "Your Share $" (share = total × split%).
+// Editing total or split% recomputes the share amount…
+function calcShareFromSplit(){
   const t=parseFloat(document.getElementById('f-total').value)||0;
-  const s=Math.min(100,Math.max(0,parseFloat(document.getElementById('f-split').value)||100));
-  document.getElementById('f-prev').textContent=fmt(t*(s/100));
+  let s=parseFloat(document.getElementById('f-split').value); if(isNaN(s)) s=100;
+  s=Math.min(100,Math.max(0,s));
+  const share=t*(s/100);
+  document.getElementById('f-share').value = share ? +share.toFixed(2) : '';
+}
+// …and editing the share amount recomputes the split %.
+function calcSplitFromShare(){
+  const t=parseFloat(document.getElementById('f-total').value)||0;
+  const sh=parseFloat(document.getElementById('f-share').value)||0;
+  if(t>0){
+    const pct=Math.min(100,Math.max(0,(sh/t)*100));
+    document.getElementById('f-split').value = +pct.toFixed(2);
+  }
 }
 async function saveExpense(){
   const date =document.getElementById('f-date').value;
@@ -3221,11 +3249,17 @@ async function saveExpense(){
   const cat  =document.getElementById('f-cat').value;
   const cc   =document.getElementById('f-cc').value;
   const total=parseFloat(document.getElementById('f-total').value)||0;
-  const split=Math.min(100,Math.max(0,parseFloat(document.getElementById('f-split').value)||100))/100;
   const notes    =document.getElementById('f-notes').value;
   const recurring=document.getElementById('f-recurring').checked?'TRUE':'';
   if(!desc||!total){toast('Enter description and amount','#cf5468');return;}
-  const share=+(total*split).toFixed(2);
+  // "Your Share $" is the source of truth; fall back to split% if it's blank.
+  let share=parseFloat(document.getElementById('f-share').value);
+  if(isNaN(share)){
+    const p=Math.min(100,Math.max(0,parseFloat(document.getElementById('f-split').value)||100))/100;
+    share=total*p;
+  }
+  share=+Math.max(0,Math.min(share,total)).toFixed(2);
+  const split=total>0 ? share/total : 1;
 
   // Determine which month tab to write to based on the expense date
   let mn=MONTHS[mi]; // default to currently viewed month
