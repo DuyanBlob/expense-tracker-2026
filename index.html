@@ -1274,9 +1274,6 @@ select:focus:not(:focus-visible) { outline: none; }
         <div class="mfg"><label for="f-cc">Credit Card</label>
           <select id="f-cc">
             <option value="">— Sharon paid</option>
-            <option>CFF</option><option>CFU</option><option>CSP</option><option>Discover</option>
-            <option>Citi</option><option>Capital One</option><option>WF</option>
-            <option>Amazon Card</option><option>Robinhood</option><option>Cash</option><option>Other</option>
           </select></div>
       </div>
       <div class="fgrid">
@@ -1331,7 +1328,9 @@ const MDATES = [
   '2028-01-01','2028-02-01','2028-03-01','2028-04-01','2028-05-01','2028-06-01'
 ];
 const CATS   = ['Groceries','Utilities','Gas / Transport','Dining / Takeout','Entertainment','Health','Shopping','Subscriptions','Cash','Personal / Misc','Other','Travel'];
-const CCS    = ['CFF','CFU','CSP','Discover','Citi','Capital One','WF','Amazon Card','Robinhood','Cash','Other'];
+// Fallback/default card roster shown before sheet data loads. The LIVE list is read
+// from the sheet (col U of each month tab), so adding a card there needs no code change.
+const CCS    = ['CFF','CFU','CSP','Discover','Citi','Capital One','WF','Amazon Card','Robinhood','Cash','BofA'];
 
 // Category icons — distinct emoji per category
 const CAT_ICON = {
@@ -1360,7 +1359,7 @@ const CAT_COL = {
 const CC_ICON = {
   'CFF':'⚡','CFU':'🔄','CSP':'💎','Discover':'🔶','Citi':'🏙️',
   'Capital One':'🦅','WF':'🐎','Amazon Card':'📦','Robinhood':'🐦',
-  'Cash':'💵','Other':'💳',
+  'Cash':'💵','BofA':'🏦','Other':'💳',
 };
 
 // CC_SVG: real brand logos — base64 embedded, works local + GitHub
@@ -1387,6 +1386,7 @@ const CC_COL = {
   'Amazon Card': '#c2410c',  // Amazon orange-red
   'Robinhood':   '#16a34a',  // Robinhood green
   'Cash':        '#15803d',  // Cash green
+  'BofA':        '#E31837',  // Bank of America red
   'Other':       '#6b7280',  // Gray
 };
 
@@ -1411,6 +1411,7 @@ let mi=(()=>{                       // default to the current calendar month
   return key<MDATES[0].slice(0,7) ? 0 : MONTHS.length-1; // clamp outside the tracked range
 })();
 let curView='dash', token=null, cfg=null, slideDir=0;
+let cardNames=[...CCS];              // live card roster (from sheet col U); seeds the Add-Expense dropdown
 let tokenClient=null, authInteractive=false;
 let logFilterCat=null, logFilterCC=null, logSort='date-desc', logSearch='';
 let editingSheetRow=null;
@@ -1608,7 +1609,7 @@ async function loadData(t=mi){
   const ranges=[
     `'${mn}'!D6:H9`,
     `'${mn}'!D12:F27`,       // rows 12-27: 12 cats + adjRent + invest + totalOut + leftover
-    `'${mn}'!D30:D41`,       // CC: row 29=header, data rows 30-40, total row 41
+    `'${mn}'!U12:V40`,       // CC roster: U=card name, V=this-month total (growable — add cards by typing a name)
     `'${mn}'!D45:F53`,       // Investments: row 44=header, data rows 45-53
     `'${mn}'!D57:D72`,       // Summary/Sharon: section shifted +1 vs old sheet
     `'${mn}'!J12:S${ROWS.logEnd}`, // extended to col S for Recurring
@@ -1656,9 +1657,18 @@ async function loadData(t=mi){
   const invested   =g(CAT,13,0); const investPct  =gp(CAT,13,1);
   const leftover   =g(CAT,15,0); const leftoverPct=gp(CAT,15,1);
 
-  const CC=vr[2].values||[];
-  const ccAmts=CCS.map((_,i)=>g(CC,i,0));
-  const ccTotal=g(CC,11,0);
+  // Credit-card roster — col U = card name, col V = this-month total. Dynamic & growable:
+  // a new card shows up automatically once its name is in the sheet. The headline CC total
+  // comes from D62 (summary), which sums ALL carded spend independent of the roster.
+  const cards=[];
+  (vr[2].values||[]).forEach(r=>{
+    const name=(r[0]||'').toString().trim();
+    if(!name) return;
+    const amt=parseFloat((r[1]||'').toString().replace(/[$,"\s]/g,''))||0;
+    cards.push({name,amt});
+  });
+  if(cards.length) cardNames=cards.map(c=>c.name);
+  const ccTotal=g(vr[4].values||[],5,0); // D62 = total carded spend (roster-independent)
 
   const INV=vr[3].values||[];
   const robAdd=g(INV,0,0); const robBal=g(INV,0,2);
@@ -1710,7 +1720,7 @@ async function loadData(t=mi){
 
   inflight.delete(mn);
   const d={income,pay1,pay2,carry,saved,adjRent,adjRentPct,ccTotal,leftover,leftoverPct,
-    invested,investPct,catShares,catPcts,catBudgets,ccAmts,logRows,prevLogRows,
+    invested,investPct,catShares,catPcts,catBudgets,cards,logRows,prevLogRows,
     robAdd,robBal,vanAdd,vanBal,wantsAdd,wantsBal,vacAdd,vacBal,carAdd,carBal,emergAdd,emergBal,allyTotal,
     sharonBase,sheCovered,youCovered,sharonTotal,youOwe};
   cache[mn]=d; cacheTs[mn]=Date.now();
@@ -2158,18 +2168,18 @@ function renderDash(d){
   renderDonut(d);
 
   // Credit cards — unique icon + brand color per card
-  const usedCC=CCS.filter((_,i)=>d.ccAmts[i]>0);
+  const usedCC=(d.cards||[]).filter(c=>c.amt>0);
   document.getElementById('cc-card').innerHTML=
     (usedCC.length ? usedCC.map(c=>{
-      const i=CCS.indexOf(c);
-      const col=CC_COL[c]||'#6b7280';
-      const svg=CC_SVG[c];
-      const ico=CC_ICON[c]||'💳';
-      const esc=c.replace(/'/g,"\\'");
-      return`<div class="crow clickable" onclick="drillTo('cc','${esc}')" title="View ${c} transactions">
+      const nm=c.name;
+      const col=CC_COL[nm]||'#6b7280';
+      const svg=CC_SVG[nm];
+      const ico=CC_ICON[nm]||'💳';
+      const esc=nm.replace(/'/g,"\\'");
+      return`<div class="crow clickable" onclick="drillTo('cc','${esc}')" title="View ${nm} transactions">
         <div class="ci" style="${svg?'':'background:'+col+'22;font-size:17px'}">${svg||ico}</div>
-        <div class="cm"><div class="cn" style="font-weight:600">${c}<span class="cdrill">›</span></div></div>
-        <div class="cr"><div class="camt" style="color:${col}">${fmt(d.ccAmts[i])}</div></div>
+        <div class="cm"><div class="cn" style="font-weight:600">${nm}<span class="cdrill">›</span></div></div>
+        <div class="cr"><div class="camt" style="color:${col}">${fmt(c.amt)}</div></div>
       </div>`;
     }).join('') : '<div class="empty"><div class="empty-icon">💳</div><div class="empty-text">No CC charges yet</div><div class="empty-sub">Sync to load card transactions</div></div>')+
     `<div class="crow" style="background:rgba(200,122,53,.05)">
@@ -3151,9 +3161,22 @@ function chMonth(d){
 })();
 
 // ─── ADD / EDIT EXPENSE ───────────────────────────────────
+// Fill the Credit Card dropdown from the live roster (cardNames, read from sheet col U).
+// `keep` ensures a value currently being edited stays selectable even if it's no longer
+// in the roster (e.g. an old card you've since removed).
+function populateCCDropdown(keep){
+  const sel=document.getElementById('f-cc');
+  if(!sel) return;
+  const names=[...cardNames];
+  if(keep && !names.includes(keep)) names.push(keep);
+  sel.innerHTML='<option value="">— Sharon paid</option>'+
+    names.map(n=>`<option>${(n||'').replace(/</g,'&lt;')}</option>`).join('');
+}
+
 function openAdd(){
   editingSheetRow=null;
   document.getElementById('modal-title').textContent='Add Expense';
+  populateCCDropdown();
   const _t=new Date(); document.getElementById('f-date').value=`${_t.getFullYear()}-${String(_t.getMonth()+1).padStart(2,'0')}-${String(_t.getDate()).padStart(2,'0')}`;
   document.getElementById('f-desc').value='';
   document.getElementById('f-total').value='';
@@ -3193,6 +3216,7 @@ function openEditExpense(rdStr){
   document.getElementById('f-split').value=splitPct;
   document.getElementById('f-notes').value=r.notes||'';
   document.getElementById('f-cat').value=r.cat||CATS[0];
+  populateCCDropdown(r.cc||'');
   document.getElementById('f-cc').value=r.cc||'';
   document.getElementById('f-recurring').checked=!!r.recurring;
   calcShareFromSplit();
